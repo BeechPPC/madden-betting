@@ -177,7 +177,7 @@ const RoleSelection: React.FC = () => {
                   Choose Your Role
                 </h2>
                 <p className="text-gray-600 font-medium">
-                  Select how you'd like to participate
+                  Select how you&apos;d like to participate
                 </p>
               </div>
               
