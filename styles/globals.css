@@ -1,0 +1,207 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50;
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-3 px-6 rounded-xl shadow-soft hover:shadow-medium transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+  
+  .btn-secondary {
+    @apply bg-white hover:bg-gray-50 text-gray-800 font-semibold py-3 px-6 rounded-xl border border-gray-200 shadow-soft hover:shadow-medium transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+  }
+  
+  .btn-accent {
+    @apply bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-semibold py-3 px-6 rounded-xl shadow-soft hover:shadow-medium transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2;
+  }
+  
+  .card {
+    @apply bg-white/80 backdrop-blur-sm rounded-2xl shadow-soft border border-white/20 hover:shadow-medium transition-all duration-300;
+  }
+  
+  .card-sport {
+    @apply bg-gradient-to-br from-white via-blue-50/50 to-indigo-50/50 backdrop-blur-sm rounded-2xl shadow-soft border border-white/30 hover:shadow-medium transition-all duration-300 hover:scale-[1.02];
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white/80 backdrop-blur-sm shadow-soft transition-all duration-200;
+  }
+  
+  .sport-header {
+    @apply text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 via-accent-500 to-primary-700 bg-clip-text text-transparent;
+  }
+  
+  .sport-subtitle {
+    @apply text-lg md:text-xl text-gray-600 font-medium;
+  }
+  
+  .week-badge {
+    @apply inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-soft;
+  }
+  
+  .team-card {
+    @apply relative overflow-hidden bg-gradient-to-r from-white to-gray-50/80 rounded-xl border border-gray-200/50 shadow-soft hover:shadow-medium transition-all duration-300 cursor-pointer;
+  }
+  
+  .team-card:hover {
+    @apply transform scale-[1.02] border-primary-200;
+  }
+  
+  .team-card.selected {
+    @apply bg-gradient-to-r from-primary-50 to-primary-100/80 border-primary-300 shadow-medium;
+  }
+  
+  .vs-divider {
+    @apply relative flex items-center justify-center my-4;
+  }
+  
+  .vs-divider::before {
+    @apply content-[''] absolute w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent;
+  }
+  
+  .vs-text {
+    @apply relative bg-white px-4 py-1 text-sm font-semibold text-gray-500 rounded-full border border-gray-200;
+  }
+  
+  .pick-indicator {
+    @apply absolute top-2 right-2 w-6 h-6 bg-gradient-to-r from-success-500 to-success-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-soft;
+  }
+  
+  .leaderboard-item {
+    @apply relative overflow-hidden bg-gradient-to-r from-white to-gray-50/80 rounded-xl border border-gray-200/50 shadow-soft hover:shadow-medium transition-all duration-300;
+  }
+  
+  .leaderboard-item.rank-1 {
+    @apply bg-gradient-to-r from-yellow-50 to-yellow-100/80 border-yellow-300 shadow-medium;
+  }
+  
+  .leaderboard-item.rank-2 {
+    @apply bg-gradient-to-r from-gray-50 to-gray-100/80 border-gray-300 shadow-medium;
+  }
+  
+  .leaderboard-item.rank-3 {
+    @apply bg-gradient-to-r from-orange-50 to-orange-100/80 border-orange-300 shadow-medium;
+  }
+  
+  .loading-spinner {
+    @apply animate-spin rounded-full border-2 border-gray-300 border-t-primary-500;
+  }
+  
+  .success-message {
+    @apply bg-gradient-to-r from-success-50 to-success-100/80 border border-success-200 text-success-800 rounded-xl p-4 shadow-soft;
+  }
+  
+  .error-message {
+    @apply bg-gradient-to-r from-destructive-50 to-destructive-100/80 border border-destructive-200 text-destructive-800 rounded-xl p-4 shadow-soft;
+  }
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.6s ease-out;
+}
+
+/* Glass morphism effects */
+.glass {
+  @apply bg-white/10 backdrop-blur-md border border-white/20;
+}
+
+.glass-card {
+  @apply bg-white/80 backdrop-blur-sm border border-white/30 shadow-soft;
+}
+
+/* Responsive design helpers */
+@media (max-width: 640px) {
+  .container {
+    @apply px-4;
+  }
+  
+  .sport-header {
+    @apply text-3xl;
+  }
+  
+  .sport-subtitle {
+    @apply text-base;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
+}
+
+/* Focus styles for accessibility */
+*:focus-visible {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+} 
