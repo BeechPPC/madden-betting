@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import MatchupCard from '../components/MatchupCard';
-import TeamMatchupHeader from '../components/TeamMatchupHeader';
-import Leaderboard from '../components/Leaderboard';
 import { useAuth } from '../contexts/AuthContext';
-import Login from '../components/Login';
-import UserProfile from '../components/UserProfile';
 import { makeAuthenticatedRequest } from '../utils/api';
+import Login from '../components/Login';
+import RoleSelection from '../components/RoleSelection';
+import MatchupCard from '../components/MatchupCard';
+import Leaderboard from '../components/Leaderboard';
+import UserProfile from '../components/UserProfile';
+import TeamMatchupHeader from '../components/TeamMatchupHeader';
 
 interface Matchup {
   id: string;
@@ -27,20 +28,20 @@ interface Bet {
 }
 
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { user, userRole, currentLeague, loading } = useAuth();
   const [matchups, setMatchups] = useState<Matchup[]>([]);
   const [selectedPicks, setSelectedPicks] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [submitMessage, setSubmitMessage] = useState<string>('');
-  const [currentWeek, setCurrentWeek] = useState<number | null>(null);
-  const [isLoadingMatchups, setIsLoadingMatchups] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [isLoadingMatchups, setIsLoadingMatchups] = useState(false);
   const [matchupsError, setMatchupsError] = useState<string | null>(null);
+  const [currentWeek, setCurrentWeek] = useState<number | null>(null);
 
   useEffect(() => {
-    if (user && !loading) {
+    if (user && userRole && !loading) {
       fetchMatchups();
     }
-  }, [user, loading]);
+  }, [user, userRole, loading]);
 
   const fetchMatchups = async () => {
     try {
@@ -129,6 +130,11 @@ export default function Home() {
     return <Login />;
   }
 
+  // Show role selection if user is authenticated but doesn't have a role
+  if (user && !userRole) {
+    return <RoleSelection />;
+  }
+
   return (
     <div className="min-h-screen">
       <Head>
@@ -147,19 +153,28 @@ export default function Home() {
             <p className="sport-subtitle mb-4">
               Make your picks for this week&apos;s matchups
             </p>
-            {currentWeek && (
-              <div className="week-badge animate-bounce-in">
-                Week {currentWeek}
+            {currentLeague && (
+              <div className="flex items-center justify-center lg:justify-start space-x-2 mb-4">
+                <div className="week-badge animate-bounce-in">
+                  {currentLeague.name}
+                </div>
+                {currentWeek && (
+                  <div className="week-badge animate-bounce-in">
+                    Week {currentWeek}
+                  </div>
+                )}
               </div>
             )}
           </div>
           <div className="flex items-center space-x-4">
-            <Link
-              href="/admin"
-              className="btn-secondary"
-            >
-              Admin Panel
-            </Link>
+            {userRole?.role === 'admin' && (
+              <Link
+                href="/admin"
+                className="btn-secondary"
+              >
+                Admin Panel
+              </Link>
+            )}
             <UserProfile />
           </div>
         </div>
@@ -184,7 +199,9 @@ export default function Home() {
                     <span className="text-lg font-semibold text-gray-900">
                       Welcome back, {user.displayName || user.email}
                     </span>
-                    <p className="text-sm text-gray-600">Ready to make your picks?</p>
+                    <p className="text-sm text-gray-600">
+                      {userRole?.role === 'admin' ? 'Ready to manage your league?' : 'Ready to make your picks?'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -222,11 +239,14 @@ export default function Home() {
                       {currentWeek ? `No matchups have been set up for Week ${currentWeek} yet.` : 'No matchups are currently available.'}
                     </p>
                     <p className="text-sm text-gray-400">
-                      Check back later or contact the admin to set up this week&apos;s matchups.
+                      {userRole?.role === 'admin' 
+                        ? 'Set up this week\'s matchups in the Admin Panel.'
+                        : 'Check back later or contact the admin to set up this week\'s matchups.'
+                      }
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {matchups.map((matchup, index) => (
                       <div 
                         key={matchup.id} 

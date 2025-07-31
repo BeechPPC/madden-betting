@@ -2,18 +2,11 @@ import { useState } from 'react';
 import Head from 'next/head';
 import { useAuth } from '../contexts/AuthContext';
 import Login from '../components/Login';
+import RoleSelection from '../components/RoleSelection';
 import AdminPanel from '../components/AdminPanel';
 
 export default function AdminPage() {
-  const { user, loading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  // Simple admin check - you can enhance this with proper admin roles
-  const checkAdminStatus = () => {
-    // For now, let's allow any authenticated user to access admin
-    // In production, you'd want to check against a list of admin emails or roles
-    return user && (user.email?.includes('admin') || user.email?.includes('chris'));
-  };
+  const { user, userRole, loading } = useAuth();
 
   // Show loading state while checking authentication
   if (loading) {
@@ -32,19 +25,19 @@ export default function AdminPage() {
     return <Login />;
   }
 
+  // Show role selection if user is authenticated but doesn't have a role
+  if (user && !userRole) {
+    return <RoleSelection />;
+  }
+
   // Check if user is admin
-  if (!isAdmin && !checkAdminStatus()) {
+  if (userRole?.role !== 'admin') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
           <p className="text-gray-600 mb-4">You don&apos;t have permission to access the admin panel.</p>
-          <button
-            onClick={() => setIsAdmin(true)}
-            className="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-md"
-          >
-            Override (for testing)
-          </button>
+          <p className="text-sm text-gray-500">Only league admins can access this page.</p>
         </div>
       </div>
     );
@@ -73,6 +66,9 @@ export default function AdminPage() {
             </div>
             <span className="text-sm font-medium text-gray-700">
               Logged in as: {user.displayName || user.email}
+            </span>
+            <span className="text-sm text-gray-500">
+              (League Admin)
             </span>
           </div>
         </div>

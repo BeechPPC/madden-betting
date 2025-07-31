@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
@@ -18,14 +18,14 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
   console.warn('Firebase configuration is missing. Please set up your .env.local file with Firebase credentials.');
 }
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase - prevent multiple instances
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Google Auth Provider
+// Google Auth Provider - create once to prevent memory leaks
 export const googleProvider = new GoogleAuthProvider();
 
 // Sign in with Google
@@ -49,7 +49,13 @@ export const signOutUser = async () => {
   }
 };
 
-// Auth state observer
+// Auth state observer with proper error handling
 export const onAuthStateChange = (callback: (user: User | null) => void) => {
-  return onAuthStateChanged(auth, callback);
+  try {
+    return onAuthStateChanged(auth, callback);
+  } catch (error) {
+    console.error('Error setting up auth state listener:', error);
+    // Return a no-op function to prevent crashes
+    return () => {};
+  }
 }; 

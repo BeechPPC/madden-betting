@@ -18,20 +18,16 @@ interface MatchupCardProps {
 
 const MatchupCard: React.FC<MatchupCardProps> = ({ matchup, selectedTeam, onTeamSelect }) => {
   return (
-    <div className="card-sport p-6 hover:shadow-large transition-all duration-300">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-gray-900 flex items-center">
-          <span className="mr-2">🏆</span>
-          Week {matchup.week}
-        </h3>
+    <div className="card-sport p-4 hover:shadow-large transition-all duration-300 aspect-square flex flex-col">
+      <div className="text-center mb-4">
         <span className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
           Pick your winner
         </span>
       </div>
       
-      <div className="space-y-4">
+      <div className="flex-1 space-y-3">
         {/* Team 1 */}
-        <label className={`team-card p-4 ${selectedTeam === matchup.team1 ? 'selected' : ''}`}>
+        <label className={`team-card p-3 ${selectedTeam === matchup.team1 ? 'selected' : ''}`}>
           <input
             type="radio"
             name={`matchup-${matchup.id}`}
@@ -41,11 +37,11 @@ const MatchupCard: React.FC<MatchupCardProps> = ({ matchup, selectedTeam, onTeam
             className="sr-only"
           />
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               <TeamLogo teamName={matchup.team1} size="md" />
               <div>
-                <span className="font-bold text-gray-900 text-lg">{matchup.team1}</span>
-                <p className="text-sm text-gray-500">Record: {matchup.team1_record}</p>
+                <span className="font-bold text-gray-900 text-base">{matchup.team1}</span>
+                <p className="text-sm text-gray-500">{matchup.team1_record}</p>
               </div>
             </div>
             {selectedTeam === matchup.team1 && (
@@ -62,7 +58,7 @@ const MatchupCard: React.FC<MatchupCardProps> = ({ matchup, selectedTeam, onTeam
         </div>
 
         {/* Team 2 */}
-        <label className={`team-card p-4 ${selectedTeam === matchup.team2 ? 'selected' : ''}`}>
+        <label className={`team-card p-3 ${selectedTeam === matchup.team2 ? 'selected' : ''}`}>
           <input
             type="radio"
             name={`matchup-${matchup.id}`}
@@ -72,11 +68,11 @@ const MatchupCard: React.FC<MatchupCardProps> = ({ matchup, selectedTeam, onTeam
             className="sr-only"
           />
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               <TeamLogo teamName={matchup.team2} size="md" />
               <div>
-                <span className="font-bold text-gray-900 text-lg">{matchup.team2}</span>
-                <p className="text-sm text-gray-500">Record: {matchup.team2_record}</p>
+                <span className="font-bold text-gray-900 text-base">{matchup.team2}</span>
+                <p className="text-sm text-gray-500">{matchup.team2_record}</p>
               </div>
             </div>
             {selectedTeam === matchup.team2 && (
@@ -89,19 +85,19 @@ const MatchupCard: React.FC<MatchupCardProps> = ({ matchup, selectedTeam, onTeam
       </div>
 
       {selectedTeam && (
-        <div className="mt-6 p-4 bg-gradient-to-r from-success-50 to-success-100/80 border border-success-200 rounded-xl">
+        <div className="mt-3 p-3 bg-gradient-to-r from-success-50 to-success-100/80 border border-success-200 rounded-xl">
           <div className="flex items-center">
-            <div className="flex items-center mr-3">
+            <div className="flex items-center mr-2">
               <TeamLogo teamName={selectedTeam} size="sm" />
-              <div className="w-6 h-6 rounded-full bg-gradient-to-r from-success-500 to-success-600 flex items-center justify-center text-white font-bold text-xs ml-2">
+              <div className="w-5 h-5 rounded-full bg-gradient-to-r from-success-500 to-success-600 flex items-center justify-center text-white font-bold text-xs ml-1">
                 ✓
               </div>
             </div>
             <div>
-              <p className="font-semibold text-success-800">
-                Your pick: <span className="text-success-900">{selectedTeam}</span>
+              <p className="font-semibold text-success-800 text-sm">
+                <span className="text-success-900">{selectedTeam}</span>
               </p>
-              <p className="text-sm text-success-700">Good luck!</p>
+              <p className="text-xs text-success-700">Good luck!</p>
             </div>
           </div>
         </div>

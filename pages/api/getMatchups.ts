@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { verifyAuth } from '../../utils/authMiddleware';
 import { GoogleSheetsService } from '../../utils/googleSheets';
 
 interface Matchup {
@@ -19,6 +20,12 @@ export default async function handler(
   }
 
   try {
+    // Verify user authentication
+    const user = await verifyAuth(req);
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     // Use our GoogleSheetsService to read matchups raw data
     const matchupsData = await GoogleSheetsService.readMatchupsRaw();
 

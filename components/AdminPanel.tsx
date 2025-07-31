@@ -24,8 +24,7 @@ export default function AdminPanel() {
   const router = useRouter();
   const [matchups, setMatchups] = useState<Matchup[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [selectedMatchup, setSelectedMatchup] = useState<string>('');
-  const [winningTeam, setWinningTeam] = useState<string>('');
+  const [winners, setWinners] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string>('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
@@ -57,11 +56,20 @@ export default function AdminPanel() {
     }
   };
 
-  const handleMarkWinner = async (e: React.FormEvent) => {
+  const handleTeamSelect = (matchupId: string, team: string) => {
+    setWinners(prev => ({
+      ...prev,
+      [matchupId]: team
+    }));
+  };
+
+  const handleMarkWinners = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedMatchup || !winningTeam) {
-      setMessage('Please select a matchup and winning team');
+    const selectedWinners = Object.keys(winners).filter(matchupId => winners[matchupId]);
+    
+    if (selectedWinners.length === 0) {
+      setMessage('Please select at least one winner');
       setMessageType('error');
       return;
     }
@@ -70,43 +78,48 @@ export default function AdminPanel() {
     setMessage('');
 
     try {
-      const response = await makeAuthenticatedRequest('/api/markWinner', {
-        method: 'POST',
-        body: JSON.stringify({
-          matchup_id: selectedMatchup,
-          winning_team: winningTeam,
-        }),
-      });
+      // Mark winners one by one
+      let totalCorrect = 0;
+      let totalIncorrect = 0;
+      
+      for (const matchupId of selectedWinners) {
+        const response = await makeAuthenticatedRequest('/api/markWinner', {
+          method: 'POST',
+          body: JSON.stringify({
+            matchup_id: matchupId,
+            winning_team: winners[matchupId],
+          }),
+        });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage(`Winner marked successfully! ${data.correctPicks} correct picks, ${data.incorrectPicks} incorrect picks`);
-        setMessageType('success');
-        setSelectedMatchup('');
-        setWinningTeam('');
+        const data = await response.json();
         
-        // Refresh leaderboard
-        fetchLeaderboard();
-      } else {
-        setMessage(data.error || 'Failed to mark winner');
-        setMessageType('error');
+        if (response.ok) {
+          totalCorrect += data.correctPicks || 0;
+          totalIncorrect += data.incorrectPicks || 0;
+        } else {
+          throw new Error(data.error || 'Failed to mark winner');
+        }
       }
+
+      setMessage(`Winners marked successfully! ${totalCorrect} correct picks, ${totalIncorrect} incorrect picks`);
+      setMessageType('success');
+      setWinners({});
+      
+      // Refresh leaderboard
+      fetchLeaderboard();
     } catch (error) {
-      setMessage('Error marking winner');
+      setMessage('Error marking winners');
       setMessageType('error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getSelectedMatchup = () => {
-    return matchups.find(m => m.id === selectedMatchup);
-  };
-
   const handleBackToDashboard = () => {
     router.push('/');
   };
+
+  const selectedWinnersCount = Object.keys(winners).filter(matchupId => winners[matchupId]).length;
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -121,111 +134,124 @@ export default function AdminPanel() {
         </button>
       </div>
       
-      {/* Mark Winner Form */}
-      <form onSubmit={handleMarkWinner} className="mb-8">
-        <div className="grid md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select Matchup
-            </label>
-            <select
-              value={selectedMatchup}
-              onChange={(e) => setSelectedMatchup(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
-              <option value="">Choose a matchup...</option>
+      {/* Mark Winners Form */}
+      <form onSubmit={handleMarkWinners} className="mb-8">
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Select Winners for Each Matchup</h3>
+          <p className="text-gray-600 mb-4">Click on a team to mark them as the winner for that matchup.</p>
+          
+          {matchups.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No matchups available</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {matchups.map((matchup) => (
-                <option key={matchup.id} value={matchup.id}>
-                  {matchup.team1} vs {matchup.team2} (Week {matchup.week})
-                </option>
+                <div key={matchup.id} className="card-sport p-4 hover:shadow-large transition-all duration-300">
+                  <div className="text-center mb-4">
+                    <span className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                      Week {matchup.week}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {/* Team 1 */}
+                    <button
+                      type="button"
+                      onClick={() => handleTeamSelect(matchup.id, matchup.team1)}
+                      className={`w-full p-3 rounded-xl border transition-all duration-200 flex items-center justify-between ${
+                        winners[matchup.id] === matchup.team1
+                          ? 'border-green-500 bg-green-50 shadow-medium'
+                          : 'border-gray-200 hover:border-gray-300 hover:shadow-soft'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <TeamLogo teamName={matchup.team1} size="md" />
+                        <div className="text-left">
+                          <span className="font-bold text-gray-900 text-base">{matchup.team1}</span>
+                          <p className="text-sm text-gray-500">{matchup.team1_record}</p>
+                        </div>
+                      </div>
+                      {winners[matchup.id] === matchup.team1 && (
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-bold text-xs">
+                          ✓
+                        </div>
+                      )}
+                    </button>
+
+                    {/* VS Divider */}
+                    <div className="vs-divider">
+                      <span className="vs-text">VS</span>
+                    </div>
+
+                    {/* Team 2 */}
+                    <button
+                      type="button"
+                      onClick={() => handleTeamSelect(matchup.id, matchup.team2)}
+                      className={`w-full p-3 rounded-xl border transition-all duration-200 flex items-center justify-between ${
+                        winners[matchup.id] === matchup.team2
+                          ? 'border-green-500 bg-green-50 shadow-medium'
+                          : 'border-gray-200 hover:border-gray-300 hover:shadow-soft'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <TeamLogo teamName={matchup.team2} size="md" />
+                        <div className="text-left">
+                          <span className="font-bold text-gray-900 text-base">{matchup.team2}</span>
+                          <p className="text-sm text-gray-500">{matchup.team2_record}</p>
+                        </div>
+                      </div>
+                      {winners[matchup.id] === matchup.team2 && (
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-bold text-xs">
+                          ✓
+                        </div>
+                      )}
+                    </button>
+                  </div>
+
+                  {winners[matchup.id] && (
+                    <div className="mt-3 p-3 bg-gradient-to-r from-green-50 to-green-100/80 border border-green-200 rounded-xl">
+                      <div className="flex items-center">
+                        <div className="flex items-center mr-2">
+                          <TeamLogo teamName={winners[matchup.id]} size="sm" />
+                          <div className="w-5 h-5 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-bold text-xs ml-1">
+                            ✓
+                          </div>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-green-800 text-sm">
+                            Winner: <span className="text-green-900">{winners[matchup.id]}</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Winning Team
-            </label>
-            {selectedMatchup ? (
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={() => setWinningTeam(getSelectedMatchup()!.team1)}
-                  className={`w-full p-3 border rounded-md transition-all duration-200 flex items-center space-x-3 ${
-                    winningTeam === getSelectedMatchup()!.team1
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                >
-                  <TeamLogo teamName={getSelectedMatchup()!.team1} size="sm" />
-                  <span className="font-medium text-gray-900">{getSelectedMatchup()!.team1}</span>
-                  {winningTeam === getSelectedMatchup()!.team1 && (
-                    <span className="ml-auto text-green-600">✓</span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setWinningTeam(getSelectedMatchup()!.team2)}
-                  className={`w-full p-3 border rounded-md transition-all duration-200 flex items-center space-x-3 ${
-                    winningTeam === getSelectedMatchup()!.team2
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                >
-                  <TeamLogo teamName={getSelectedMatchup()!.team2} size="sm" />
-                  <span className="font-medium text-gray-900">{getSelectedMatchup()!.team2}</span>
-                  {winningTeam === getSelectedMatchup()!.team2 && (
-                    <span className="ml-auto text-green-600">✓</span>
-                  )}
-                </button>
-              </div>
-            ) : (
-              <div className="w-full p-3 border border-gray-300 rounded-md bg-gray-100 text-gray-500">
-                Select a matchup first
-              </div>
-            )}
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={isSubmitting || !selectedMatchup || !winningTeam}
-          className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-medium py-2 px-6 rounded-md transition duration-200"
-        >
-          {isSubmitting ? 'Marking Winner...' : 'Mark Winner'}
-        </button>
-      </form>
-
-      {/* Selected Matchup Preview */}
-      {selectedMatchup && getSelectedMatchup() && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Selected Matchup Preview:</h4>
-          <div className="flex items-center justify-center space-x-8">
-            <div className="flex items-center space-x-3">
-              <TeamLogo teamName={getSelectedMatchup()!.team1} size="md" />
-              <div className="text-center">
-                <p className="font-semibold text-gray-900">{getSelectedMatchup()!.team1}</p>
-                <p className="text-sm text-gray-500">{getSelectedMatchup()!.team1_record}</p>
-              </div>
-            </div>
-            <div className="text-lg font-bold text-gray-500">VS</div>
-            <div className="flex items-center space-x-3">
-              <div className="text-center">
-                <p className="font-semibold text-gray-900">{getSelectedMatchup()!.team2}</p>
-                <p className="text-sm text-gray-500">{getSelectedMatchup()!.team2_record}</p>
-              </div>
-              <TeamLogo teamName={getSelectedMatchup()!.team2} size="md" />
-            </div>
-          </div>
-          {winningTeam && (
-            <div className="mt-3 text-center">
-              <p className="text-sm text-gray-600">
-                Winner: <span className="font-semibold text-green-600">{winningTeam}</span>
-              </p>
             </div>
           )}
         </div>
-      )}
+
+        <div className="flex items-center justify-between">
+          <button
+            type="submit"
+            disabled={isSubmitting || selectedWinnersCount === 0}
+            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          >
+            {isSubmitting ? (
+              <div className="flex items-center">
+                <div className="loading-spinner h-4 w-4 mr-2"></div>
+                Marking Winners...
+              </div>
+            ) : (
+              'Mark Selected Winners'
+            )}
+          </button>
+          <div className="text-sm text-gray-600 font-medium bg-gray-100 px-4 py-2 rounded-full">
+            {selectedWinnersCount} of {matchups.length} winners selected
+          </div>
+        </div>
+      </form>
 
       {/* Message Display */}
       {message && (

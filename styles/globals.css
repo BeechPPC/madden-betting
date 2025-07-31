@@ -102,6 +102,18 @@
     @apply animate-spin rounded-full border-2 border-gray-300 border-t-primary-500;
   }
   
+  .shadow-soft {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .shadow-medium {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .shadow-large {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
   .success-message {
     @apply bg-gradient-to-r from-success-50 to-success-100/80 border border-success-200 text-success-800 rounded-xl p-4 shadow-soft;
   }
