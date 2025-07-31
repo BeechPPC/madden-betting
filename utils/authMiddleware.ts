@@ -25,32 +25,40 @@ function initializeFirebaseAdmin(): Promise<void> {
       }
 
       console.log('=== INITIALIZING FIREBASE ADMIN SDK ===');
-      console.log('Environment variables check:', {
-        FIREBASE_PROJECT_ID: !!process.env.FIREBASE_PROJECT_ID,
-        FIREBASE_CLIENT_EMAIL: !!process.env.FIREBASE_CLIENT_EMAIL,
-        FIREBASE_PRIVATE_KEY: !!process.env.FIREBASE_PRIVATE_KEY,
-      });
-
-      // Check if environment variables are available
-      const requiredEnvVars = {
+      
+      // Check environment variables with more detailed logging
+      const envVars = {
         FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
         FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
         FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
       };
+      
+      console.log('Environment variables check:', {
+        FIREBASE_PROJECT_ID: !!envVars.FIREBASE_PROJECT_ID,
+        FIREBASE_CLIENT_EMAIL: !!envVars.FIREBASE_CLIENT_EMAIL,
+        FIREBASE_PRIVATE_KEY: !!envVars.FIREBASE_PRIVATE_KEY,
+        NODE_ENV: process.env.NODE_ENV,
+      });
 
-      const missingVars = Object.entries(requiredEnvVars)
+      // Check if environment variables are available
+      const missingVars = Object.entries(envVars)
         .filter(([key, value]) => !value)
         .map(([key]) => key);
 
       if (missingVars.length > 0) {
-        console.error('Missing Firebase Admin SDK environment variables:', missingVars);
+        const errorMsg = `Missing Firebase Admin SDK environment variables: ${missingVars.join(', ')}`;
+        console.error(errorMsg);
         console.error('Firebase Admin SDK will not be initialized');
-        reject(new Error(`Missing environment variables: ${missingVars.join(', ')}`));
+        console.error('Please set these environment variables in your Vercel deployment:');
+        console.error('- FIREBASE_PROJECT_ID');
+        console.error('- FIREBASE_CLIENT_EMAIL');
+        console.error('- FIREBASE_PRIVATE_KEY');
+        reject(new Error(errorMsg));
         return;
       }
 
       // Fix private key formatting
-      let privateKey = requiredEnvVars.FIREBASE_PRIVATE_KEY!;
+      let privateKey = envVars.FIREBASE_PRIVATE_KEY!;
       
       console.log('Original private key length:', privateKey.length);
       console.log('Original private key has newlines:', privateKey.includes('\\n'));
@@ -99,8 +107,8 @@ function initializeFirebaseAdmin(): Promise<void> {
         console.log('Creating new Firebase Admin app...');
         const app = admin.initializeApp({
           credential: admin.credential.cert({
-            projectId: requiredEnvVars.FIREBASE_PROJECT_ID,
-            clientEmail: requiredEnvVars.FIREBASE_CLIENT_EMAIL,
+            projectId: envVars.FIREBASE_PROJECT_ID,
+            clientEmail: envVars.FIREBASE_CLIENT_EMAIL,
             privateKey: privateKey,
           }),
         });
@@ -158,6 +166,7 @@ export const verifyAuth = async (req: NextApiRequest) => {
   try {
     console.log('=== VERIFY AUTH CALLED ===');
     console.log('firebaseAdminInitialized:', firebaseAdminInitialized);
+    console.log('NODE_ENV:', process.env.NODE_ENV);
     
     // Ensure Firebase Admin SDK is initialized
     if (!firebaseAdminInitialized) {
@@ -166,12 +175,14 @@ export const verifyAuth = async (req: NextApiRequest) => {
         await initializeFirebaseAdmin(); // Await the promise
       } catch (initError) {
         console.error('Failed to initialize Firebase Admin SDK during auth verification:', initError);
+        console.error('This usually means environment variables are missing in production');
         return null;
       }
       
       // Check again after initialization attempt
       if (!firebaseAdminInitialized) {
         console.error('Firebase Admin SDK still not initialized after attempt');
+        console.error('Check Vercel environment variables: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY');
         return null;
       }
     }
@@ -214,6 +225,18 @@ export const verifyAuth = async (req: NextApiRequest) => {
         code: error.code,
         stack: error.stack,
       });
+      
+      // Provide more specific error messages
+      if (error.code === 'auth/id-token-expired') {
+        console.error('Token is expired - user needs to sign in again');
+      } else if (error.code === 'auth/invalid-id-token') {
+        console.error('Token is invalid - possible client-side issue');
+      } else if (error.code === 'auth/id-token-revoked') {
+        console.error('Token has been revoked - user needs to sign in again');
+      } else {
+        console.error('Unknown token verification error');
+      }
+      
       return null;
     }
   } catch (error) {
