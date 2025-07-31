@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import MatchupCard from '../components/MatchupCard';
+import TeamMatchupHeader from '../components/TeamMatchupHeader';
 import Leaderboard from '../components/Leaderboard';
 import { useAuth } from '../contexts/AuthContext';
 import Login from '../components/Login';
@@ -143,7 +145,7 @@ export default function Home() {
               Madden CFM Betting
             </h1>
             <p className="sport-subtitle mb-4">
-              Make your picks for this week's matchups
+              Make your picks for this week&apos;s matchups
             </p>
             {currentWeek && (
               <div className="week-badge animate-bounce-in">
@@ -152,19 +154,26 @@ export default function Home() {
             )}
           </div>
           <div className="flex items-center space-x-4">
-            <a
+            <Link
               href="/admin"
               className="btn-secondary"
             >
               Admin Panel
-            </a>
+            </Link>
             <UserProfile />
           </div>
         </div>
 
+        {/* Team Matchup Header - Shows when matchups are available */}
+        {matchups.length > 0 && (
+          <div className="mb-6">
+            <TeamMatchupHeader matchups={matchups} />
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 overflow-y-auto max-h-screen md:max-h-none">
             <form onSubmit={handleSubmit} className="card-sport p-8 mb-8 animate-slide-up">
               <div className="mb-8">
                 <div className="flex items-center space-x-4 mb-6">
@@ -183,7 +192,7 @@ export default function Home() {
               <div className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                   <span className="mr-3">🏈</span>
-                  This Week's Matchups
+                  This Week&apos;s Matchups
                 </h2>
                 
                 {isLoadingMatchups ? (
@@ -213,13 +222,17 @@ export default function Home() {
                       {currentWeek ? `No matchups have been set up for Week ${currentWeek} yet.` : 'No matchups are currently available.'}
                     </p>
                     <p className="text-sm text-gray-400">
-                      Check back later or contact the admin to set up this week's matchups.
+                      Check back later or contact the admin to set up this week&apos;s matchups.
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-6">
                     {matchups.map((matchup, index) => (
-                      <div key={matchup.id} className="animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+                      <div 
+                        key={matchup.id} 
+                        className="animate-fade-in" 
+                        style={{ animationDelay: `${index * 100}ms` }}
+                      >
                         <MatchupCard
                           matchup={matchup}
                           selectedTeam={selectedPicks[matchup.id]}

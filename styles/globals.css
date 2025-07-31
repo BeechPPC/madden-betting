@@ -186,6 +186,18 @@
   .sport-subtitle {
     @apply text-base;
   }
+  
+  /* Mobile scrolling improvements */
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* Ensure sticky header works properly on mobile */
+  .sticky {
+    position: -webkit-sticky;
+    position: sticky;
+  }
 }
 
 /* Custom scrollbar */

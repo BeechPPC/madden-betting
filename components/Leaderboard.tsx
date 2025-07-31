@@ -150,7 +150,7 @@ const Leaderboard: React.FC = () => {
       <div className="mt-8 pt-6 border-t border-gray-200">
         <div className="text-center">
           <p className="text-sm text-gray-500 font-medium">
-            Leaderboard updates after each week's results
+            Leaderboard updates after each week&apos;s results
           </p>
           <p className="text-xs text-gray-400 mt-1">
             Make your picks to climb the rankings!

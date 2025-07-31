@@ -10,6 +10,19 @@ A full-stack web application for Madden CFM players to log weekly game predictio
 - 🏆 Live leaderboard showing user rankings
 - 📱 Responsive design for mobile and desktop
 - ⚡ Real-time updates and modern UI
+- 🏈 Team matchup header with logos at the top of the screen
+- 📱 Mobile-optimized scrolling for better user experience
+
+## Team Matchup Header
+
+The app now features a prominent team matchup header that displays when matchups are available:
+
+- **Desktop**: Shows team logos with "VS" separator at the top of the screen
+- **Mobile**: Sticky header with scrollable content below
+- **Responsive**: Automatically adapts to different screen sizes
+- **Dynamic**: Updates based on the first available matchup from the Google Sheet
+
+The header provides a clear visual indication of the current week's matchups, similar to professional betting applications.
 
 ## Tech Stack
 

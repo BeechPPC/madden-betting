@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { getTeamLogoUrl, getTeamAbbreviation } from '../utils/teamLogos';
 
 interface TeamLogoProps {
@@ -25,20 +26,30 @@ const TeamLogo: React.FC<TeamLogoProps> = ({ teamName, size = 'md', className = 
 
   if (logoUrl) {
     return (
-      <img
-        src={logoUrl}
-        alt={`${teamName} logo`}
-        className={`${sizeClasses[size]} object-contain ${className}`}
-        onError={(e) => {
-          // Fallback to abbreviation if image fails to load
-          const target = e.target as HTMLImageElement;
-          target.style.display = 'none';
-          const fallback = target.nextElementSibling as HTMLElement;
-          if (fallback) {
-            fallback.style.display = 'flex';
-          }
-        }}
-      />
+      <div className="relative">
+        <Image
+          src={logoUrl}
+          alt={`${teamName} logo`}
+          width={size === 'sm' ? 32 : size === 'md' ? 40 : 48}
+          height={size === 'sm' ? 32 : size === 'md' ? 40 : 48}
+          className={`${sizeClasses[size]} object-contain ${className}`}
+          onError={() => {
+            // Fallback to abbreviation if image fails to load
+            const fallback = document.querySelector(`[data-fallback="${teamName}"]`) as HTMLElement;
+            if (fallback) {
+              fallback.style.display = 'flex';
+            }
+          }}
+        />
+        {/* Hidden fallback that shows on error */}
+        <div
+          data-fallback={teamName}
+          className={`${sizeClasses[size]} rounded-full bg-gradient-to-r from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold ${textSizes[size]} shadow-soft ${className} hidden`}
+          title={teamName}
+        >
+          {abbreviation}
+        </div>
+      </div>
     );
   }
 
