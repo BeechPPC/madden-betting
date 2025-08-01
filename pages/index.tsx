@@ -135,6 +135,9 @@ export default function Home() {
 
   // Show role selection if user is authenticated but doesn't have a role
   if (user && !userRole) {
+    console.log('User authenticated but no role, showing RoleSelection');
+    console.log('User:', user);
+    console.log('UserRole:', userRole);
     return <RoleSelection />;
   }
 

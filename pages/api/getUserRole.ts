@@ -1,57 +1,66 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyAuth } from '../../utils/authMiddleware';
+import { FirestoreServerService } from '../../lib/firestore-server';
+import { GoogleSheetsService } from '../../utils/googleSheets';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set proper headers to ensure JSON response
-  res.setHeader('Content-Type', 'application/json');
-
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  console.log('=== GET USER ROLE API CALLED ===');
+  console.log('Request method:', req.method);
+  console.log('Request URL:', req.url);
+
   try {
-    console.log('=== GET USER ROLE API CALLED ===');
-    console.log('Request method:', req.method);
-    console.log('Request URL:', req.url);
-    
+    // Verify user authentication
     const user = await verifyAuth(req);
     if (!user) {
-      console.log('Authentication failed - no user found');
-      return res.status(401).json({ 
-        error: 'Unauthorized',
-        details: 'User authentication failed - no valid user found'
-      });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     console.log('Authentication successful for user:', user.email);
     console.log('User UID:', user.uid);
 
-    // Test Firebase Admin SDK availability (without Firestore access)
+    // Try Firestore first
     try {
-      const admin = require('firebase-admin');
-      console.log('Firebase Admin SDK imported successfully');
-      console.log('Available apps:', admin.apps.length);
+      const userRole = await FirestoreServerService.getUserRole(user.uid);
+      if (userRole) {
+        return res.status(200).json({
+          role: userRole.role,
+          leagueId: userRole.leagueId,
+          displayName: userRole.displayName,
+          source: 'firestore'
+        });
+      }
+    } catch (firestoreError) {
+      console.log('Firestore failed, trying Google Sheets fallback:', firestoreError);
       
-      // Test auth functionality instead of Firestore
-      const auth = admin.auth();
-      console.log('Firebase Auth instance obtained successfully');
-      
-    } catch (firebaseError) {
-      console.error('Firebase Admin SDK error:', firebaseError);
-      return res.status(500).json({ 
-        error: 'Firebase configuration error',
-        details: firebaseError instanceof Error ? firebaseError.message : 'Unknown Firebase error',
-        suggestion: 'Please check your Firebase Admin SDK configuration and environment variables'
-      });
+             // Fallback to Google Sheets
+       try {
+         const userRoles = await GoogleSheetsService.readUserRoles();
+         const userRole = userRoles.find(role => role.userId === user.uid && (role.isActive !== false));
+         
+         if (userRole) {
+           return res.status(200).json({
+             role: userRole.role,
+             leagueId: userRole.leagueId,
+             displayName: userRole.displayName,
+             source: 'google-sheets'
+           });
+         }
+       } catch (sheetsError) {
+         console.error('Google Sheets fallback also failed:', sheetsError);
+       }
     }
 
-    // For now, return null for userRole and league to indicate user needs to create/join a league
-    console.log('User has no role yet, returning null');
-    
-    res.status(200).json({
-      userRole: null,
-      league: null,
-      message: 'User has no role yet - needs to create or join a league'
+    // No role found
+    return res.status(404).json({ 
+      error: 'User role not found',
+      message: 'Please join a league or contact the administrator.'
     });
 
   } catch (error) {
@@ -59,11 +68,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
-      name: error instanceof Error ? error.name : undefined
+      name: error instanceof Error ? error.name : 'Unknown'
     });
     
     res.status(500).json({ 
-      error: 'Internal server error',
+      error: 'Failed to get user role',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow Admin SDK full access (server-side operations)
+    // The Admin SDK bypasses security rules by default, but we need to ensure
+    // the rules don't block legitimate operations
+    
+    // Allow read access to all authenticated users
+    match /{document=**} {
+      allow read: if request.auth != null;
+    }
+    
+    // Allow write access only through Admin SDK (server-side)
+    // Client-side writes are disabled for security
+    match /leagues/{leagueId} {
+      allow write: if false; // Only Admin SDK can write
+    }
+    
+    match /userRoles/{roleId} {
+      allow write: if false; // Only Admin SDK can write
+    }
+    
+    match /matchups/{matchupId} {
+      allow write: if false; // Only Admin SDK can write
+    }
+    
+    match /bets/{betId} {
+      allow write: if false; // Only Admin SDK can write
+    }
+  }
+} 

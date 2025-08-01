@@ -1,5 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyAuth } from '../../utils/authMiddleware';
+import { FirestoreServerService } from '../../lib/firestore-server';
+import { GoogleSheetsService } from '../../utils/googleSheets';
 
 // Helper function to validate league code format
 function isValidLeagueCode(code: string): boolean {
@@ -72,32 +74,89 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // For now, return a simple success response to test the flow
-    console.log('All checks passed, returning success response');
-    console.log('League code validation passed:', leagueCode);
-    
-    res.status(200).json({
-      success: true,
-      message: 'League join successful',
-      league: {
-        id: leagueCode,
-        name: 'Test League',
-        leagueCode: leagueCode,
-        createdAt: new Date().toISOString(),
-        isActive: true,
-        adminUserId: 'test-admin-id',
-        adminEmail: 'test-admin@example.com',
-      },
-      userRole: {
-        id: `role-${Date.now()}`,
+    // Find the league by code
+    const league = await FirestoreServerService.getLeagueByCode(leagueCode);
+    if (!league) {
+      console.log('League not found with code:', leagueCode);
+      return res.status(404).json({
+        error: 'League not found',
+        details: 'No active league found with the provided code'
+      });
+    }
+
+    // Check if user is already a member of this league
+    const existingUserRole = await FirestoreServerService.getUserRoleByLeague(userId, league.id);
+    if (existingUserRole) {
+      console.log('User already a member of this league:', userId);
+      return res.status(400).json({
+        error: 'Already a member',
+        details: 'You are already a member of this league'
+      });
+    }
+
+    try {
+      // Create the user role for joining the league
+      const userRole = await FirestoreServerService.createUserRole({
         userId: userId,
         userEmail: userEmail,
-        leagueId: leagueCode,
+        leagueId: league.id,
         role: 'user',
-        joinedAt: new Date().toISOString(),
         displayName: displayName,
-      },
-    });
+        isActive: true,
+      });
+
+      // Update the league member count
+      const leagueMembers = await FirestoreServerService.getLeagueMembers(league.id);
+      await FirestoreServerService.updateLeagueMemberCount(league.id, leagueMembers.length);
+
+      console.log('User successfully joined league:', league.id);
+      
+      // Write to Google Sheets as backup (non-blocking)
+      try {
+        await GoogleSheetsService.writeUserRole({
+          userId: userRole.userId,
+          userEmail: userRole.userEmail,
+          displayName: userRole.displayName,
+          leagueId: userRole.leagueId,
+          role: userRole.role,
+          joinedAt: userRole.joinedAt.toDate().toISOString(),
+        });
+        
+        console.log('User role data written to Google Sheets');
+      } catch (sheetsError) {
+        console.error('Failed to write to Google Sheets (non-critical):', sheetsError);
+        // Don't fail the request if Google Sheets fails
+      }
+      
+      res.status(200).json({
+        success: true,
+        message: 'Successfully joined the league',
+        league: {
+          id: league.id,
+          name: league.name,
+          leagueCode: league.leagueCode,
+          createdAt: league.createdAt.toDate().toISOString(),
+          isActive: league.isActive,
+          adminUserId: league.adminUserId,
+          adminEmail: league.adminEmail,
+        },
+        userRole: {
+          id: userRole.id,
+          userId: userRole.userId,
+          userEmail: userRole.userEmail,
+          leagueId: userRole.leagueId,
+          role: userRole.role,
+          joinedAt: userRole.joinedAt.toDate().toISOString(),
+          displayName: userRole.displayName,
+        },
+      });
+    } catch (firestoreError) {
+      console.error('Firestore error joining league:', firestoreError);
+      return res.status(500).json({ 
+        error: 'Failed to join league in database',
+        details: firestoreError instanceof Error ? firestoreError.message : 'Unknown database error'
+      });
+    }
 
   } catch (error) {
     console.error('Error in joinLeague API:', error);

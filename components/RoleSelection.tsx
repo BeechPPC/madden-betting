@@ -51,16 +51,15 @@ const RoleSelection: React.FC = () => {
       const league = await createLeague(leagueName.trim());
       setSuccessMessage(`League "${league.name}" created successfully! Share this code with your friends: ${league.leagueCode}`);
       
-      // Use a more reliable navigation approach
-      const timeoutId = setTimeout(() => {
+      // Navigate to the main dashboard after successful league creation
+      // Add a longer delay to ensure AuthContext state is updated
+      setTimeout(() => {
+        console.log('Navigating to main dashboard after league creation...');
         router.push('/').catch((navError) => {
           console.error('Navigation error:', navError);
           setError('League created but navigation failed. Please refresh the page.');
         });
-      }, 2000);
-
-      // Cleanup timeout if component unmounts
-      return () => clearTimeout(timeoutId);
+      }, 3000);
     } catch (error) {
       console.error('Error creating league:', error);
       if (error instanceof Error) {
@@ -88,16 +87,13 @@ const RoleSelection: React.FC = () => {
       await joinLeague(leagueCode.trim());
       setSuccessMessage('Successfully joined the league!');
       
-      // Use a more reliable navigation approach
-      const timeoutId = setTimeout(() => {
+      // Navigate to the main dashboard after successfully joining league
+      setTimeout(() => {
         router.push('/').catch((navError) => {
           console.error('Navigation error:', navError);
           setError('Successfully joined league but navigation failed. Please refresh the page.');
         });
       }, 2000);
-
-      // Cleanup timeout if component unmounts
-      return () => clearTimeout(timeoutId);
     } catch (error) {
       console.error('Error joining league:', error);
       setError(error instanceof Error ? error.message : 'Failed to join league');

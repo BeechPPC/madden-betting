@@ -30,7 +30,7 @@ export default async function handler(
     const sheetNames = metadata.data.sheets?.map(sheet => sheet.properties?.title) || [];
     console.log('Available sheets:', sheetNames);
 
-    const requiredSheets = ['Matchups', 'Bets', 'Leaderboard', 'Results'];
+    const requiredSheets = ['Matchups', 'Bets', 'Leaderboard', 'Results', 'Leagues', 'UserRoles'];
     const missingSheets = requiredSheets.filter(sheet => !sheetNames.includes(sheet));
 
     if (missingSheets.length === 0) {
@@ -72,6 +72,12 @@ export default async function handler(
           break;
         case 'Matchups':
           headers = ['Week', 'Team 1', 'Team 1 Record', 'Team 2', 'Team 2 Record'];
+          break;
+        case 'Leagues':
+          headers = ['Timestamp', 'League ID', 'League Name', 'Admin Email', 'Created At', 'Member Count', 'Status'];
+          break;
+        case 'UserRoles':
+          headers = ['Timestamp', 'User ID', 'User Email', 'Display Name', 'League ID', 'Role', 'Joined At'];
           break;
       }
 

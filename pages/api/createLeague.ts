@@ -1,119 +1,185 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyAuth } from '../../utils/authMiddleware';
-import { generateLeagueId } from '../../lib/utils';
+import { FirestoreServerService } from '../../lib/firestore-server';
+import { GoogleSheetsService } from '../../utils/googleSheets';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set proper headers to ensure JSON response
-  res.setHeader('Content-Type', 'application/json');
-
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  console.log('=== CREATE LEAGUE API CALLED ===');
+  console.log('Request method:', req.method);
+  console.log('Request URL:', req.url);
+  console.log('Request headers:', req.headers);
+
   try {
-    console.log('=== CREATE LEAGUE API CALLED ===');
-    console.log('Request method:', req.method);
-    console.log('Request URL:', req.url);
-    console.log('Request headers:', {
-      authorization: req.headers.authorization ? 'Bearer [TOKEN]' : 'None',
-      'content-type': req.headers['content-type'],
-      'user-agent': req.headers['user-agent'],
-      host: req.headers.host,
-    });
-    
-    // Test authentication first
     console.log('Starting authentication verification...');
     const user = await verifyAuth(req);
-    
     if (!user) {
-      console.log('Authentication failed - no user found');
-      console.log('This means either:');
-      console.log('1. No authorization header was sent');
-      console.log('2. The token is invalid or expired');
-      console.log('3. Firebase Admin SDK is not working properly');
-      
-      return res.status(401).json({ 
-        error: 'Unauthorized',
-        details: 'User authentication failed - no valid user found',
-        debug: {
-          hasAuthHeader: !!req.headers.authorization,
-          authHeaderStartsWithBearer: req.headers.authorization?.startsWith('Bearer ') || false,
-          tokenLength: req.headers.authorization ? req.headers.authorization.split('Bearer ')[1]?.length || 0 : 0,
-        }
-      });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
-    
+
     console.log('Authentication successful for user:', user.email);
     console.log('User UID:', user.uid);
 
     const { leagueName, adminEmail, adminUserId, displayName } = req.body;
-    console.log('Request body:', { leagueName, adminEmail, adminUserId, displayName });
+    console.log('Request body:', req.body);
 
     if (!leagueName || !adminEmail || !adminUserId || !displayName) {
-      console.log('Missing required fields');
       return res.status(400).json({ 
         error: 'Missing required fields',
-        details: 'leagueName, adminEmail, adminUserId, and displayName are required'
+        required: ['leagueName', 'adminEmail', 'adminUserId', 'displayName']
       });
     }
 
-    // Test Firebase Admin SDK availability (without Firestore access)
+    // Generate a unique league code
+    const generateLeagueCode = () => {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let result = '';
+      for (let i = 0; i < 12; i++) {
+        if (i > 0 && i % 3 === 0) result += '-';
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    };
+
+    let leagueCode = generateLeagueCode();
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    // Check if league code exists (try Firestore first, then Google Sheets)
+    while (attempts < maxAttempts) {
+      try {
+        const exists = await FirestoreServerService.checkLeagueCodeExists(leagueCode);
+        if (!exists) break;
+      } catch (firestoreError) {
+        console.log('Firestore check failed, trying Google Sheets:', firestoreError);
+        try {
+          const leagues = await GoogleSheetsService.readLeagues();
+          const exists = leagues.some(league => league.id === leagueCode);
+          if (!exists) break;
+        } catch (sheetsError) {
+          console.error('Both Firestore and Google Sheets failed:', sheetsError);
+          // Continue anyway, assume code is unique
+          break;
+        }
+      }
+      
+      leagueCode = generateLeagueCode();
+      attempts++;
+    }
+
+    console.log('Generated unique league code:', leagueCode);
+
+    // Try to create league in Firestore first
     try {
-      const admin = require('firebase-admin');
-      console.log('Firebase Admin SDK imported successfully');
-      console.log('Available apps:', admin.apps.length);
-      
-      // Test auth functionality instead of Firestore
-      const auth = admin.auth();
-      console.log('Firebase Auth instance obtained successfully');
-      
-    } catch (firebaseError) {
-      console.error('Firebase Admin SDK error:', firebaseError);
-      return res.status(500).json({ 
-        error: 'Firebase configuration error',
-        details: firebaseError instanceof Error ? firebaseError.message : 'Unknown Firebase error',
-        suggestion: 'Please check your Firebase Admin SDK configuration and environment variables'
-      });
-    }
-
-    // Generate a unique league ID in the format xxx-xxx-xxxx
-    const uniqueLeagueId = generateLeagueId();
-    console.log('Generated unique league ID:', uniqueLeagueId);
-    
-    res.status(200).json({
-      success: true,
-      message: 'League created successfully',
-      league: {
-        id: uniqueLeagueId,
+      const league = await FirestoreServerService.createLeague({
         name: leagueName,
-        leagueCode: uniqueLeagueId,
-        createdAt: new Date().toISOString(),
-        isActive: true,
         adminUserId: adminUserId,
         adminEmail: adminEmail,
-      },
-      userRole: {
-        id: `role-${Date.now()}`,
-        userId: adminUserId,
-        userEmail: adminEmail,
-        leagueId: uniqueLeagueId,
-        role: 'admin',
-        joinedAt: new Date().toISOString(),
-        displayName: displayName,
-      },
-    });
+        isActive: true,
+        leagueCode: leagueCode,
+      });
+
+             // Create user role for admin
+       const userRole = await FirestoreServerService.createUserRole({
+         userId: adminUserId,
+         userEmail: adminEmail,
+         displayName: displayName,
+         leagueId: league.id,
+         role: 'admin',
+         isActive: true,
+       });
+
+      return res.status(201).json({
+        success: true,
+        league: {
+          id: league.id,
+          name: league.name,
+          leagueCode: league.leagueCode,
+          adminEmail: league.adminEmail,
+          createdAt: league.createdAt,
+        },
+        userRole: {
+          id: userRole.id,
+          userId: userRole.userId,
+          userEmail: userRole.userEmail,
+          leagueId: userRole.leagueId,
+          role: userRole.role,
+          joinedAt: userRole.joinedAt,
+          displayName: userRole.displayName,
+        },
+        source: 'firestore'
+      });
+
+    } catch (firestoreError) {
+      console.log('Firestore creation failed, trying Google Sheets fallback:', firestoreError);
+      
+      // Fallback to Google Sheets
+      try {
+        const leagueData = {
+          id: leagueCode,
+          name: leagueName,
+          adminEmail: adminEmail,
+          createdAt: new Date().toISOString(),
+          memberCount: 1,
+          isActive: true,
+        };
+
+        await GoogleSheetsService.writeLeague(leagueData);
+
+        const userRoleData = {
+          userId: adminUserId,
+          userEmail: adminEmail,
+          displayName: displayName,
+          leagueId: leagueCode,
+          role: 'admin',
+          joinedAt: new Date().toISOString(),
+        };
+
+        await GoogleSheetsService.writeUserRole(userRoleData);
+
+        return res.status(201).json({
+          success: true,
+          league: {
+            id: leagueCode,
+            name: leagueName,
+            leagueCode: leagueCode,
+            adminEmail: adminEmail,
+            createdAt: leagueData.createdAt,
+          },
+          userRole: {
+            id: `role-${adminUserId}-${leagueCode}`,
+            userId: adminUserId,
+            userEmail: adminEmail,
+            leagueId: leagueCode,
+            role: 'admin',
+            joinedAt: userRoleData.joinedAt,
+            displayName: displayName,
+          },
+          source: 'google-sheets'
+        });
+
+      } catch (sheetsError) {
+        console.error('Google Sheets fallback also failed:', sheetsError);
+        throw new Error('Failed to create league in both Firestore and Google Sheets');
+      }
+    }
 
   } catch (error) {
-    console.error('Error in createLeague API:', error);
+    console.error('Error creating league:', error);
     console.error('Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
-      name: error instanceof Error ? error.name : undefined
+      name: error instanceof Error ? error.name : 'Unknown'
     });
     
-    // Ensure we always return JSON, not HTML
-    return res.status(500).json({ 
-      error: 'Internal server error',
+    res.status(500).json({ 
+      error: 'Failed to create league',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

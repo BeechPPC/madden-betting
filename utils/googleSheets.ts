@@ -22,11 +22,30 @@ export interface MatchupData {
   date: string;
 }
 
+export interface LeagueData {
+  id: string;
+  name: string;
+  adminEmail: string;
+  createdAt: string;
+  memberCount: number;
+  isActive: boolean;
+}
+
+export interface UserRoleData {
+  userId: string;
+  userEmail: string;
+  displayName: string;
+  leagueId: string;
+  role: string;
+  joinedAt: string;
+  isActive?: boolean;
+}
+
 // Initialize Google Sheets API
 const auth = new google.auth.GoogleAuth({
   credentials: {
-    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    client_email: process.env.FIREBASE_CLIENT_EMAIL,
+    private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
   },
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
@@ -35,12 +54,12 @@ const sheets = google.sheets({ version: 'v4', auth });
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 
 // Validate environment variables
-if (!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
-  console.error('GOOGLE_SERVICE_ACCOUNT_EMAIL environment variable is not set');
+if (!process.env.FIREBASE_CLIENT_EMAIL) {
+  console.error('FIREBASE_CLIENT_EMAIL environment variable is not set');
 }
 
-if (!process.env.GOOGLE_PRIVATE_KEY) {
-  console.error('GOOGLE_PRIVATE_KEY environment variable is not set');
+if (!process.env.FIREBASE_PRIVATE_KEY) {
+  console.error('FIREBASE_PRIVATE_KEY environment variable is not set');
 }
 
 if (!SPREADSHEET_ID) {
@@ -160,6 +179,133 @@ export class GoogleSheetsService {
     } catch (error) {
       console.error('Error updating leaderboard in Google Sheets:', error);
       throw new Error('Failed to update leaderboard in Google Sheets');
+    }
+  }
+
+  // League operations
+  static async writeLeague(leagueData: LeagueData): Promise<void> {
+    try {
+      if (!SPREADSHEET_ID) {
+        throw new Error('GOOGLE_SHEET_ID environment variable is not set');
+      }
+
+      const values = [
+        [
+          new Date().toISOString(),
+          leagueData.id,
+          leagueData.name,
+          leagueData.adminEmail,
+          leagueData.createdAt,
+          leagueData.memberCount,
+          leagueData.isActive ? 'Active' : 'Inactive'
+        ]
+      ];
+
+      console.log('Writing league to Google Sheets:', {
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Leagues!A:G',
+        values: values[0]
+      });
+
+      const response = await sheets.spreadsheets.values.append({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Leagues!A:G',
+        valueInputOption: 'RAW',
+        requestBody: { values },
+      });
+
+      console.log('Google Sheets response:', response.data);
+    } catch (error) {
+      console.error('Error writing league to Google Sheets:', error);
+      if (error instanceof Error) {
+        throw new Error(`Failed to write league to Google Sheets: ${error.message}`);
+      }
+      throw new Error('Failed to write league to Google Sheets');
+    }
+  }
+
+  static async writeUserRole(userRoleData: UserRoleData): Promise<void> {
+    try {
+      if (!SPREADSHEET_ID) {
+        throw new Error('GOOGLE_SHEET_ID environment variable is not set');
+      }
+
+      const values = [
+        [
+          new Date().toISOString(),
+          userRoleData.userId,
+          userRoleData.userEmail,
+          userRoleData.displayName,
+          userRoleData.leagueId,
+          userRoleData.role,
+          userRoleData.joinedAt
+        ]
+      ];
+
+      console.log('Writing user role to Google Sheets:', {
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'UserRoles!A:G',
+        values: values[0]
+      });
+
+      const response = await sheets.spreadsheets.values.append({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'UserRoles!A:G',
+        valueInputOption: 'RAW',
+        requestBody: { values },
+      });
+
+      console.log('Google Sheets response:', response.data);
+    } catch (error) {
+      console.error('Error writing user role to Google Sheets:', error);
+      if (error instanceof Error) {
+        throw new Error(`Failed to write user role to Google Sheets: ${error.message}`);
+      }
+      throw new Error('Failed to write user role to Google Sheets');
+    }
+  }
+
+  static async readLeagues(): Promise<LeagueData[]> {
+    try {
+      const response = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Leagues!A:G',
+      });
+
+      const rows = response.data.values || [];
+      return rows.slice(1).map((row: any[]) => ({
+        id: row[1] || '',
+        name: row[2] || '',
+        adminEmail: row[3] || '',
+        createdAt: row[4] || '',
+        memberCount: parseInt(row[5]) || 0,
+        isActive: row[6] === 'Active',
+      }));
+    } catch (error) {
+      console.error('Error reading leagues from Google Sheets:', error);
+      throw new Error('Failed to read leagues from Google Sheets');
+    }
+  }
+
+  static async readUserRoles(): Promise<UserRoleData[]> {
+    try {
+      const response = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'UserRoles!A:G',
+      });
+
+      const rows = response.data.values || [];
+      return rows.slice(1).map((row: any[]) => ({
+        userId: row[1] || '',
+        userEmail: row[2] || '',
+        displayName: row[3] || '',
+        leagueId: row[4] || '',
+        role: row[5] || '',
+        joinedAt: row[6] || '',
+      }));
+    } catch (error) {
+      console.error('Error reading user roles from Google Sheets:', error);
+      throw new Error('Failed to read user roles from Google Sheets');
     }
   }
 } 

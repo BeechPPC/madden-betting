@@ -145,6 +145,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const data = await response.json();
     console.log('createLeague success response:', data);
+    console.log('Setting userRole:', data.userRole);
+    console.log('Setting currentLeague:', data.league);
     setUserRole(data.userRole);
     setCurrentLeague(data.league);
     return data.league;
