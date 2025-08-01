@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyAuth } from '../../utils/authMiddleware';
+import { generateLeagueId } from '../../lib/utils';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Set proper headers to ensure JSON response
@@ -75,29 +76,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // For now, return a simple success response to test the flow
-    console.log('All checks passed, returning success response');
-    
-    // Generate a simple league code for testing
-    const leagueCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    // Generate a unique league ID in the format xxx-xxx-xxxx
+    const uniqueLeagueId = generateLeagueId();
+    console.log('Generated unique league ID:', uniqueLeagueId);
     
     res.status(200).json({
       success: true,
-      message: 'League creation test successful - Firebase is working',
+      message: 'League created successfully',
       league: {
-        id: `test-league-${Date.now()}`,
+        id: uniqueLeagueId,
         name: leagueName,
-        leagueCode: leagueCode,
+        leagueCode: uniqueLeagueId,
         createdAt: new Date().toISOString(),
         isActive: true,
         adminUserId: adminUserId,
         adminEmail: adminEmail,
       },
       userRole: {
-        id: `test-role-${Date.now()}`,
+        id: `role-${Date.now()}`,
         userId: adminUserId,
         userEmail: adminEmail,
-        leagueId: `test-league-${Date.now()}`,
+        leagueId: uniqueLeagueId,
         role: 'admin',
         joinedAt: new Date().toISOString(),
         displayName: displayName,

@@ -26,6 +26,7 @@ export default function AdminPanel() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [winners, setWinners] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string>('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
@@ -38,11 +39,22 @@ export default function AdminPanel() {
     try {
       const response = await makeAuthenticatedRequest('/api/getMatchups');
       const data = await response.json();
-      setMatchups(data.matchups);
+      
+      if (response.ok && data.matchups) {
+        setMatchups(data.matchups);
+      } else {
+        console.error('Error fetching matchups:', data.error || 'Unknown error');
+        setMatchups([]);
+        setMessage(data.error || 'Error fetching matchups');
+        setMessageType('error');
+      }
     } catch (error) {
       console.error('Error fetching matchups:', error);
+      setMatchups([]);
       setMessage('Error fetching matchups');
       setMessageType('error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -140,7 +152,12 @@ export default function AdminPanel() {
           <h3 className="text-xl font-semibold text-gray-900 mb-4">Select Winners for Each Matchup</h3>
           <p className="text-gray-600 mb-4">Click on a team to mark them as the winner for that matchup.</p>
           
-          {matchups.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4"></div>
+              <p className="text-gray-500">Loading matchups...</p>
+            </div>
+          ) : matchups.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-500">No matchups available</p>
             </div>
@@ -248,7 +265,7 @@ export default function AdminPanel() {
             )}
           </button>
           <div className="text-sm text-gray-600 font-medium bg-gray-100 px-4 py-2 rounded-full">
-            {selectedWinnersCount} of {matchups.length} winners selected
+            {selectedWinnersCount} of {isLoading ? '...' : matchups.length} winners selected
           </div>
         </div>
       </form>

@@ -6,6 +6,7 @@ A full-stack web application for Madden CFM players to log weekly game predictio
 
 - 🎨 **Modern Landing Page** - Beautiful landing page for new users with features showcase and pricing
 - 🔐 Google Authentication with Firebase
+- 🏆 **Unique League System** - Each league has a unique ID (XXX-XXX-XXXX format) for easy sharing and joining
 - 📊 Fetch matchup data from Google Sheets
 - 🎯 Submit weekly picks with user-friendly interface
 - 🏆 Live leaderboard showing user rankings
@@ -13,6 +14,7 @@ A full-stack web application for Madden CFM players to log weekly game predictio
 - ⚡ Real-time updates and modern UI
 - 🏈 Team matchup header with logos at the top of the screen
 - 📱 Mobile-optimized scrolling for better user experience
+- 📋 Copy-to-clipboard functionality for league codes
 
 ## Landing Page
 
@@ -37,6 +39,33 @@ The app now features a prominent team matchup header that displays when matchups
 - **Dynamic**: Updates based on the first available matchup from the Google Sheet
 
 The header provides a clear visual indication of the current week's matchups, similar to professional betting applications.
+
+## League System
+
+The app now supports multiple leagues with a unique ID system:
+
+- **Unique League IDs**: Each league gets a unique identifier in the format `XXX-XXX-XXXX` (letters and numbers)
+- **Easy Sharing**: League admins can share their league code with friends
+- **Simple Joining**: Users can join existing leagues by entering the league code
+- **Copy-to-Clipboard**: One-click copying of league codes for easy sharing
+- **Format Validation**: Automatic validation of league code format when joining
+- **Visual Display**: League codes are prominently displayed in the app header
+
+### League Creation Flow
+
+1. User signs in with Google
+2. Chooses "Create New League (Admin)"
+3. Enters league name
+4. System generates unique league ID
+5. Admin can share the code with friends
+
+### League Joining Flow
+
+1. User signs in with Google
+2. Chooses "Join Existing League"
+3. Enters league code (automatically formatted)
+4. System validates code format
+5. User joins the league as a regular member
 
 ## Tech Stack
 

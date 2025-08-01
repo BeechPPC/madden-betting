@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Trophy, TrendingUp, Users, Shield, Zap, BarChart3, Star, Check, Mail, Phone, MapPin } from "lucide-react"
+import * as LucideIcons from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useAuth } from "../contexts/AuthContext"
@@ -30,7 +30,7 @@ export default function LandingPage() {
       <header className="border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 lg:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-400" />
+            <LucideIcons.Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-400" />
             <span className="text-lg sm:text-xl font-bold text-white">ClutchPicks</span>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
@@ -91,11 +91,11 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center space-x-4 sm:space-x-8 text-slate-400 text-sm sm:text-base">
                 <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <LucideIcons.Users className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>10K+ Users</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <LucideIcons.TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>$2M+ Wagered</span>
                 </div>
               </div>
@@ -129,7 +129,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <Card className="bg-slate-800/50 border-slate-700 hover:border-emerald-600/50 transition-colors">
               <CardHeader>
-                <BarChart3 className="h-12 w-12 text-emerald-400 mb-4" />
+                <LucideIcons.BarChart3 className="h-12 w-12 text-emerald-400 mb-4" />
                 <CardTitle className="text-white">Advanced Analytics</CardTitle>
                 <CardDescription className="text-slate-300">
                   Deep dive into player stats, team performance, and betting trends with our AI-powered analytics
@@ -140,7 +140,7 @@ export default function LandingPage() {
 
             <Card className="bg-slate-800/50 border-slate-700 hover:border-blue-600/50 transition-colors">
               <CardHeader>
-                <Zap className="h-12 w-12 text-blue-400 mb-4" />
+                <LucideIcons.Zap className="h-12 w-12 text-blue-400 mb-4" />
                 <CardTitle className="text-white">Real-Time Betting</CardTitle>
                 <CardDescription className="text-slate-300">
                   Place bets on live games with instant updates and dynamic odds that adjust based on game performance.
@@ -150,7 +150,7 @@ export default function LandingPage() {
 
             <Card className="bg-slate-800/50 border-slate-700 hover:border-purple-600/50 transition-colors">
               <CardHeader>
-                <Shield className="h-12 w-12 text-purple-400 mb-4" />
+                <LucideIcons.Shield className="h-12 w-12 text-purple-400 mb-4" />
                 <CardTitle className="text-white">Secure Transactions</CardTitle>
                 <CardDescription className="text-slate-300">
                   Bank-level security with encrypted transactions and secure wallet management for all your bets.
@@ -160,17 +160,17 @@ export default function LandingPage() {
 
             <Card className="bg-slate-800/50 border-slate-700 hover:border-emerald-600/50 transition-colors">
               <CardHeader>
-                <Users className="h-12 w-12 text-emerald-400 mb-4" />
+                <LucideIcons.Users className="h-12 w-12 text-emerald-400 mb-4" />
                 <CardTitle className="text-white">League Management</CardTitle>
                 <CardDescription className="text-slate-300">
-                  Create and manage betting pools with friends, track leaderboards, and organize tournaments.
+                  Create and manage betting pools with friends, track leaderboards, and organise tournaments.
                 </CardDescription>
               </CardHeader>
             </Card>
 
             <Card className="bg-slate-800/50 border-slate-700 hover:border-blue-600/50 transition-colors">
               <CardHeader>
-                <TrendingUp className="h-12 w-12 text-blue-400 mb-4" />
+                <LucideIcons.TrendingUp className="h-12 w-12 text-blue-400 mb-4" />
                 <CardTitle className="text-white">Performance Tracking</CardTitle>
                 <CardDescription className="text-slate-300">
                   Monitor your betting history, win rates, and ROI with comprehensive performance dashboards.
@@ -180,7 +180,7 @@ export default function LandingPage() {
 
             <Card className="bg-slate-800/50 border-slate-700 hover:border-purple-600/50 transition-colors">
               <CardHeader>
-                <Star className="h-12 w-12 text-purple-400 mb-4" />
+                <LucideIcons.Star className="h-12 w-12 text-purple-400 mb-4" />
                 <CardTitle className="text-white">Expert Insights</CardTitle>
                 <CardDescription className="text-slate-300">
                   Get AI-generated predictions and expert analysis to make informed betting decisions.
@@ -217,19 +217,19 @@ export default function LandingPage() {
               <CardContent className="space-y-4">
                 <ul className="space-y-3">
                   <li className="flex items-center text-slate-300">
-                    <Check className="h-5 w-5 text-emerald-400 mr-3" />
+                    <LucideIcons.Check className="h-5 w-5 text-emerald-400 mr-3" />
                     Basic betting features
                   </li>
                   <li className="flex items-center text-slate-300">
-                    <Check className="h-5 w-5 text-emerald-400 mr-3" />
+                    <LucideIcons.Check className="h-5 w-5 text-emerald-400 mr-3" />
                     Join up to 3 leagues
                   </li>
                   <li className="flex items-center text-slate-300">
-                    <Check className="h-5 w-5 text-emerald-400 mr-3" />
+                    <LucideIcons.Check className="h-5 w-5 text-emerald-400 mr-3" />
                     Basic analytics
                   </li>
                   <li className="flex items-center text-slate-300">
-                    <Check className="h-5 w-5 text-emerald-400 mr-3" />
+                    <LucideIcons.Check className="h-5 w-5 text-emerald-400 mr-3" />
                     Community support
                   </li>
                 </ul>
@@ -250,7 +250,7 @@ export default function LandingPage() {
               <CardHeader className="text-center pb-8">
                 <CardTitle className="text-2xl text-white">Premium</CardTitle>
                 <div className="text-4xl font-bold text-white mt-4">
-                  $19<span className="text-lg text-slate-400">/month</span>
+                  $9.99<span className="text-lg text-slate-400">/one-time</span>
                 </div>
                 <CardDescription className="text-slate-300 mt-2">
                   Unlock the full power of advanced CFM betting
@@ -259,28 +259,28 @@ export default function LandingPage() {
               <CardContent className="space-y-4">
                 <ul className="space-y-3">
                   <li className="flex items-center text-slate-300">
-                    <Check className="h-5 w-5 text-emerald-400 mr-3" />
+                    <LucideIcons.Check className="h-5 w-5 text-emerald-400 mr-3" />
                     All free features included
                   </li>
                   <li className="flex items-center text-slate-300">
-                    <Check className="h-5 w-5 text-emerald-400 mr-3" />
+                    <LucideIcons.Check className="h-5 w-5 text-emerald-400 mr-3" />
                     Unlimited leagues
                   </li>
                   <li className="flex items-center text-slate-300">
-                    <Check className="h-5 w-5 text-emerald-400 mr-3" />
-                    Advanced analytics & AI insights
+                    <LucideIcons.Check className="h-5 w-5 text-emerald-400 mr-3" />
+                    AI insights
                   </li>
                   <li className="flex items-center text-slate-300">
-                    <Check className="h-5 w-5 text-emerald-400 mr-3" />
+                    <LucideIcons.Check className="h-5 w-5 text-emerald-400 mr-3" />
                     Real-time notifications
                   </li>
                   <li className="flex items-center text-slate-300">
-                    <Check className="h-5 w-5 text-emerald-400 mr-3" />
+                    <LucideIcons.Check className="h-5 w-5 text-emerald-400 mr-3" />
                     Priority support
                   </li>
                   <li className="flex items-center text-slate-300">
-                    <Check className="h-5 w-5 text-emerald-400 mr-3" />
-                    Custom betting pools
+                    <LucideIcons.Check className="h-5 w-5 text-emerald-400 mr-3" />
+                    All future features included
                   </li>
                 </ul>
                 <Button 
@@ -302,7 +302,7 @@ export default function LandingPage() {
             <Badge className="bg-blue-600/20 text-blue-400 border-blue-600/30 text-xs sm:text-sm">Contact</Badge>
             <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-white">Get in Touch</h2>
             <p className="text-base sm:text-xl text-slate-300 max-w-3xl mx-auto">
-              Have questions about MaddenBet Pro? We&apos;re here to help you dominate your CFM leagues.
+              Have questions about ClutchPicks? We&apos;re here to help you dominate your CFM leagues.
             </p>
           </div>
 
@@ -310,21 +310,21 @@ export default function LandingPage() {
             <div className="space-y-8">
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
-                  <Mail className="h-6 w-6 text-emerald-400 mt-1" />
+                  <LucideIcons.Mail className="h-6 w-6 text-emerald-400 mt-1" />
                   <div>
                     <h3 className="text-white font-semibold">Email</h3>
                     <p className="text-slate-300">support@maddenbetpro.com</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
-                  <Phone className="h-6 w-6 text-emerald-400 mt-1" />
+                  <LucideIcons.Phone className="h-6 w-6 text-emerald-400 mt-1" />
                   <div>
                     <h3 className="text-white font-semibold">Phone</h3>
                     <p className="text-slate-300">+1 (555) 123-4567</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
-                  <MapPin className="h-6 w-6 text-emerald-400 mt-1" />
+                  <LucideIcons.MapPin className="h-6 w-6 text-emerald-400 mt-1" />
                   <div>
                     <h3 className="text-white font-semibold">Address</h3>
                     <p className="text-slate-300">
@@ -373,7 +373,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 lg:px-6 py-6 sm:py-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
+              <LucideIcons.Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
               <span className="text-base sm:text-lg font-bold text-white">MaddenBet Pro</span>
             </div>
             <div className="flex space-x-4 sm:space-x-6 text-slate-400 text-xs sm:text-sm">

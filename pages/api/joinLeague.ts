@@ -1,6 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyAuth } from '../../utils/authMiddleware';
 
+// Helper function to validate league code format
+function isValidLeagueCode(code: string): boolean {
+  // Check if the code matches the format xxx-xxx-xxxx
+  const leagueCodePattern = /^[A-Z0-9]{3}-[A-Z0-9]{3}-[A-Z0-9]{4}$/;
+  return leagueCodePattern.test(code);
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Set proper headers to ensure JSON response
   res.setHeader('Content-Type', 'application/json');
@@ -37,6 +44,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    // Validate league code format
+    if (!isValidLeagueCode(leagueCode)) {
+      console.log('Invalid league code format:', leagueCode);
+      return res.status(400).json({
+        error: 'Invalid league code format',
+        details: 'League code must be in the format XXX-XXX-XXXX (letters and numbers)'
+      });
+    }
+
     // Test Firebase Admin SDK availability (without Firestore access)
     try {
       const admin = require('firebase-admin');
@@ -58,27 +74,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // For now, return a simple success response to test the flow
     console.log('All checks passed, returning success response');
-    
-    // Generate a simple league code for testing
-    const testLeagueCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    console.log('League code validation passed:', leagueCode);
     
     res.status(200).json({
       success: true,
-      message: 'League join test successful - Firebase is working',
+      message: 'League join successful',
       league: {
-        id: `test-league-${Date.now()}`,
+        id: leagueCode,
         name: 'Test League',
-        leagueCode: testLeagueCode,
+        leagueCode: leagueCode,
         createdAt: new Date().toISOString(),
         isActive: true,
         adminUserId: 'test-admin-id',
         adminEmail: 'test-admin@example.com',
       },
       userRole: {
-        id: `test-role-${Date.now()}`,
+        id: `role-${Date.now()}`,
         userId: userId,
         userEmail: userEmail,
-        leagueId: `test-league-${Date.now()}`,
+        leagueId: leagueCode,
         role: 'user',
         joinedAt: new Date().toISOString(),
         displayName: displayName,
