@@ -41,17 +41,71 @@ export interface UserRoleData {
   isActive?: boolean;
 }
 
-// Initialize Google Sheets API
-const auth = new google.auth.GoogleAuth({
-  credentials: {
-    client_email: process.env.FIREBASE_CLIENT_EMAIL,
-    private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  },
-  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-});
+// Initialize Google Sheets API with better error handling
+let auth: any = null;
+let sheets: any = null;
+let isInitialized = false;
 
-const sheets = google.sheets({ version: 'v4', auth });
-const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
+function initializeGoogleSheets() {
+  if (isInitialized && auth && sheets) {
+    return { auth, sheets };
+  }
+
+  try {
+    console.log('=== INITIALIZING GOOGLE SHEETS API ===');
+    
+    // Check environment variables
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+    
+    console.log('Environment check:', {
+      clientEmail: !!clientEmail,
+      privateKey: !!privateKey,
+      spreadsheetId: !!spreadsheetId
+    });
+    
+    if (!clientEmail || !privateKey || !spreadsheetId) {
+      throw new Error('Missing required environment variables for Google Sheets API');
+    }
+    
+    // Fix private key formatting
+    let formattedPrivateKey = privateKey;
+    
+    // Remove quotes if present
+    if (formattedPrivateKey.startsWith('"') && formattedPrivateKey.endsWith('"')) {
+      formattedPrivateKey = formattedPrivateKey.slice(1, -1);
+    }
+    
+    // Replace \n with actual newlines
+    formattedPrivateKey = formattedPrivateKey.replace(/\\n/g, '\n');
+    
+    // Ensure proper PEM format
+    if (!formattedPrivateKey.includes('-----BEGIN PRIVATE KEY-----')) {
+      throw new Error('Private key does not have proper PEM format');
+    }
+    
+    console.log('Creating Google Auth instance...');
+    auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: clientEmail,
+        private_key: formattedPrivateKey,
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+    
+    console.log('Creating Google Sheets instance...');
+    sheets = google.sheets({ version: 'v4', auth });
+    
+    isInitialized = true;
+    console.log('Google Sheets API initialized successfully');
+    
+    return { auth, sheets };
+  } catch (error) {
+    console.error('Failed to initialize Google Sheets API:', error);
+    throw error;
+  }
+}
 
 // Validate environment variables
 if (!process.env.FIREBASE_CLIENT_EMAIL) {
@@ -62,13 +116,16 @@ if (!process.env.FIREBASE_PRIVATE_KEY) {
   console.error('FIREBASE_PRIVATE_KEY environment variable is not set');
 }
 
-if (!SPREADSHEET_ID) {
+if (!process.env.GOOGLE_SHEET_ID) {
   console.error('GOOGLE_SHEET_ID environment variable is not set');
 }
 
 export class GoogleSheetsService {
   static async writeBet(betData: BetData): Promise<void> {
     try {
+      const { sheets } = initializeGoogleSheets();
+      const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
+      
       if (!SPREADSHEET_ID) {
         throw new Error('GOOGLE_SHEET_ID environment variable is not set');
       }
@@ -108,6 +165,13 @@ export class GoogleSheetsService {
 
   static async readLeaderboard(): Promise<LeaderboardEntry[]> {
     try {
+      const { sheets } = initializeGoogleSheets();
+      const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
+      
+      if (!SPREADSHEET_ID) {
+        throw new Error('GOOGLE_SHEET_ID environment variable is not set');
+      }
+      
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: 'Leaderboard!A:C',
@@ -128,13 +192,20 @@ export class GoogleSheetsService {
 
   static async readMatchups(): Promise<MatchupData[]> {
     try {
+      const { sheets } = initializeGoogleSheets();
+      const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
+      
+      if (!SPREADSHEET_ID) {
+        throw new Error('GOOGLE_SHEET_ID environment variable is not set');
+      }
+      
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: 'Matchups!A:E',
       });
 
       const rows = response.data.values || [];
-      return rows.slice(1).map((row: any[], index) => ({
+      return rows.slice(1).map((row: any[], index: number) => ({
         id: `matchup-${row[0] || 1}-${index}`,
         team1: row[1] || '',
         team2: row[3] || '', // team2 is in column D (index 3)
@@ -148,6 +219,13 @@ export class GoogleSheetsService {
 
   static async readMatchupsRaw(): Promise<any[][]> {
     try {
+      const { sheets } = initializeGoogleSheets();
+      const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
+      
+      if (!SPREADSHEET_ID) {
+        throw new Error('GOOGLE_SHEET_ID environment variable is not set');
+      }
+      
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: 'Matchups!A:E', // Include all columns for week, team1, team1_record, team2, team2_record
@@ -163,6 +241,13 @@ export class GoogleSheetsService {
 
   static async updateLeaderboard(leaderboard: LeaderboardEntry[]): Promise<void> {
     try {
+      const { sheets } = initializeGoogleSheets();
+      const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
+      
+      if (!SPREADSHEET_ID) {
+        throw new Error('GOOGLE_SHEET_ID environment variable is not set');
+      }
+      
       const values = leaderboard.map(entry => [
         entry.user_name,
         entry.wins,
@@ -185,6 +270,9 @@ export class GoogleSheetsService {
   // League operations
   static async writeLeague(leagueData: LeagueData): Promise<void> {
     try {
+      const { sheets } = initializeGoogleSheets();
+      const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
+      
       if (!SPREADSHEET_ID) {
         throw new Error('GOOGLE_SHEET_ID environment variable is not set');
       }
@@ -226,6 +314,9 @@ export class GoogleSheetsService {
 
   static async writeUserRole(userRoleData: UserRoleData): Promise<void> {
     try {
+      const { sheets } = initializeGoogleSheets();
+      const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
+      
       if (!SPREADSHEET_ID) {
         throw new Error('GOOGLE_SHEET_ID environment variable is not set');
       }
@@ -267,6 +358,13 @@ export class GoogleSheetsService {
 
   static async readLeagues(): Promise<LeagueData[]> {
     try {
+      const { sheets } = initializeGoogleSheets();
+      const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
+      
+      if (!SPREADSHEET_ID) {
+        throw new Error('GOOGLE_SHEET_ID environment variable is not set');
+      }
+      
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: 'Leagues!A:G',
@@ -289,6 +387,13 @@ export class GoogleSheetsService {
 
   static async readUserRoles(): Promise<UserRoleData[]> {
     try {
+      const { sheets } = initializeGoogleSheets();
+      const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
+      
+      if (!SPREADSHEET_ID) {
+        throw new Error('GOOGLE_SHEET_ID environment variable is not set');
+      }
+      
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: 'UserRoles!A:G',

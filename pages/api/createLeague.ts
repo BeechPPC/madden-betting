@@ -20,6 +20,7 @@ export default async function handler(
     console.log('Starting authentication verification...');
     const user = await verifyAuth(req);
     if (!user) {
+      console.log('Authentication failed - no user returned');
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -30,9 +31,11 @@ export default async function handler(
     console.log('Request body:', req.body);
 
     if (!leagueName || !adminEmail || !adminUserId || !displayName) {
+      console.log('Missing required fields:', { leagueName, adminEmail, adminUserId, displayName });
       return res.status(400).json({ 
         error: 'Missing required fields',
-        required: ['leagueName', 'adminEmail', 'adminUserId', 'displayName']
+        required: ['leagueName', 'adminEmail', 'adminUserId', 'displayName'],
+        received: { leagueName, adminEmail, adminUserId, displayName }
       });
     }
 
@@ -77,6 +80,7 @@ export default async function handler(
 
     // Try to create league in Firestore first
     try {
+      console.log('Attempting to create league in Firestore...');
       const league = await FirestoreServerService.createLeague({
         name: leagueName,
         adminUserId: adminUserId,
@@ -85,15 +89,20 @@ export default async function handler(
         leagueCode: leagueCode,
       });
 
-             // Create user role for admin
-       const userRole = await FirestoreServerService.createUserRole({
-         userId: adminUserId,
-         userEmail: adminEmail,
-         displayName: displayName,
-         leagueId: league.id,
-         role: 'admin',
-         isActive: true,
-       });
+      console.log('League created in Firestore successfully:', league.id);
+
+      // Create user role for admin
+      console.log('Creating user role in Firestore...');
+      const userRole = await FirestoreServerService.createUserRole({
+        userId: adminUserId,
+        userEmail: adminEmail,
+        displayName: displayName,
+        leagueId: league.id,
+        role: 'admin',
+        isActive: true,
+      });
+
+      console.log('User role created in Firestore successfully:', userRole.id);
 
       return res.status(201).json({
         success: true,
@@ -126,6 +135,7 @@ export default async function handler(
       
       // Fallback to Google Sheets
       try {
+        console.log('Attempting fallback to Google Sheets...');
         const leagueData = {
           id: leagueCode,
           name: leagueName,
@@ -136,6 +146,7 @@ export default async function handler(
         };
 
         await GoogleSheetsService.writeLeague(leagueData);
+        console.log('League written to Google Sheets successfully');
 
         const userRoleData = {
           userId: adminUserId,
@@ -147,6 +158,7 @@ export default async function handler(
         };
 
         await GoogleSheetsService.writeUserRole(userRoleData);
+        console.log('User role written to Google Sheets successfully');
 
         return res.status(201).json({
           success: true,
@@ -176,12 +188,20 @@ export default async function handler(
           stack: sheetsError instanceof Error ? sheetsError.stack : undefined,
           name: sheetsError instanceof Error ? sheetsError.name : 'Unknown'
         });
-        throw new Error(`Failed to create league in both Firestore and Google Sheets. Firestore error: ${firestoreError instanceof Error ? firestoreError.message : 'Unknown'}. Google Sheets error: ${sheetsError instanceof Error ? sheetsError.message : 'Unknown'}`);
+        
+        // Return a more specific error response instead of throwing
+        return res.status(503).json({
+          error: 'Service temporarily unavailable',
+          details: 'Both Firestore and Google Sheets are currently unavailable',
+          firestoreError: firestoreError instanceof Error ? firestoreError.message : 'Unknown Firestore error',
+          sheetsError: sheetsError instanceof Error ? sheetsError.message : 'Unknown Google Sheets error',
+          recommendation: 'Please try again later or contact support if the issue persists'
+        });
       }
     }
 
   } catch (error) {
-    console.error('Error creating league:', error);
+    console.error('Unexpected error in createLeague:', error);
     console.error('Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
@@ -189,8 +209,9 @@ export default async function handler(
     });
     
     res.status(500).json({ 
-      error: 'Failed to create league',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      recommendation: 'Please try again later or contact support if the issue persists'
     });
   }
 } 
