@@ -54,7 +54,7 @@ export default async function handler(
     };
 
     // Test Firebase Admin SDK initialization
-    let firebaseTest = { success: false, error: null };
+    let firebaseTest: { success: boolean; error: string | null } = { success: false, error: null };
     try {
       const admin = require('firebase-admin');
       
@@ -81,7 +81,7 @@ export default async function handler(
     }
 
     // Test Google Sheets API
-    let googleSheetsTest = { success: false, error: null };
+    let googleSheetsTest: { success: boolean; error: string | null } = { success: false, error: null };
     try {
       const { google } = require('googleapis');
       
