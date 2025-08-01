@@ -31,7 +31,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 lg:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-400" />
-            <span className="text-lg sm:text-xl font-bold text-white">MaddenBet Pro</span>
+            <span className="text-lg sm:text-xl font-bold text-white">ClutchPicks</span>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
             <Button 
@@ -68,8 +68,8 @@ export default function LandingPage() {
                   Experience
                 </h1>
                 <p className="text-base sm:text-xl text-slate-300 leading-relaxed">
-                  The ultimate platform for Connected Franchise Mode betting. Track stats, place bets, and compete with
-                  friends in the most advanced Madden betting ecosystem.
+                  The ultimate platform for Connected Franchise Mode betting. Place bets, AI game breakdowns, and weekly recaps and compete with
+                  CFM league in the most advanced Madden betting ecosystem.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -77,7 +77,7 @@ export default function LandingPage() {
                   className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base"
                   onClick={handleCreateAccount}
                 >
-                  Start Betting Now
+                  Create League Now
                 </Button>
                 <Button
                   variant="outline"
@@ -86,7 +86,7 @@ export default function LandingPage() {
                     document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
                   }}
                 >
-                  Watch Demo
+                  Sign In
                 </Button>
               </div>
               <div className="flex items-center space-x-4 sm:space-x-8 text-slate-400 text-sm sm:text-base">
@@ -119,7 +119,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 lg:px-6">
           <div className="text-center space-y-4 mb-12 sm:mb-16">
             <Badge className="bg-blue-600/20 text-blue-400 border-blue-600/30 text-xs sm:text-sm">Features</Badge>
-            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-white">Everything You Need to Dominate</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-white">Bet the Game, Beat the League</h2>
             <p className="text-base sm:text-xl text-slate-300 max-w-3xl mx-auto">
               Advanced analytics, real-time betting, and comprehensive league management tools designed for serious CFM
               players.
