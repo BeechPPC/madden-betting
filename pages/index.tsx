@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import { makeAuthenticatedRequest } from '../utils/api';
 import Login from '../components/Login';
+import LandingPage from '../components/LandingPage';
 import RoleSelection from '../components/RoleSelection';
 import MatchupCard from '../components/MatchupCard';
 import Leaderboard from '../components/Leaderboard';
@@ -125,9 +126,9 @@ export default function Home() {
     );
   }
 
-  // Show login page if user is not authenticated
+  // Show landing page if user is not authenticated
   if (!user) {
-    return <Login />;
+    return <LandingPage />;
   }
 
   // Show role selection if user is authenticated but doesn't have a role

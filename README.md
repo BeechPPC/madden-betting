@@ -4,6 +4,7 @@ A full-stack web application for Madden CFM players to log weekly game predictio
 
 ## Features
 
+- 🎨 **Modern Landing Page** - Beautiful landing page for new users with features showcase and pricing
 - 🔐 Google Authentication with Firebase
 - 📊 Fetch matchup data from Google Sheets
 - 🎯 Submit weekly picks with user-friendly interface
@@ -12,6 +13,19 @@ A full-stack web application for Madden CFM players to log weekly game predictio
 - ⚡ Real-time updates and modern UI
 - 🏈 Team matchup header with logos at the top of the screen
 - 📱 Mobile-optimized scrolling for better user experience
+
+## Landing Page
+
+The app features a modern, professional landing page that new users see before signing in:
+
+- **Hero Section**: Eye-catching introduction with call-to-action buttons
+- **Features Showcase**: Highlights key app features with icons and descriptions
+- **Pricing Plans**: Free and Premium tier options
+- **Contact Form**: User-friendly contact section
+- **Responsive Design**: Optimized for all device sizes
+- **Authentication Flow**: Seamless integration with Google Sign-in
+
+The landing page is designed to convert visitors into users while showcasing the app's value proposition.
 
 ## Team Matchup Header
 
@@ -128,10 +142,17 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 ```
 madden-betting/
 ├── components/
+│   ├── LandingPage.tsx     # Modern landing page for new users
 │   ├── Login.tsx           # Authentication login page
 │   ├── UserProfile.tsx     # User profile and sign out
 │   ├── MatchupCard.tsx     # Individual matchup display
-│   └── Leaderboard.tsx     # Leaderboard component
+│   ├── Leaderboard.tsx     # Leaderboard component
+│   └── ui/                 # shadcn/ui components
+│       ├── button.tsx
+│       ├── card.tsx
+│       ├── badge.tsx
+│       ├── input.tsx
+│       └── textarea.tsx
 ├── contexts/
 │   └── AuthContext.tsx     # Authentication context
 ├── lib/
@@ -145,7 +166,8 @@ madden-betting/
 │   │   ├── submitBet.ts    # Supabase bet submission
 │   │   └── getLeaderboard.ts # Leaderboard computation
 │   ├── _app.tsx           # App wrapper with AuthProvider
-│   └── index.tsx          # Main page with authentication
+│   ├── index.tsx          # Main page with authentication
+│   └── login.tsx          # Dedicated login page
 ├── styles/
 │   └── globals.css        # Global styles with TailwindCSS
 ├── docs/
