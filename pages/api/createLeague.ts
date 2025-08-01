@@ -117,7 +117,12 @@ export default async function handler(
       });
 
     } catch (firestoreError) {
-      console.log('Firestore creation failed, trying Google Sheets fallback:', firestoreError);
+      console.error('Firestore creation failed:', firestoreError);
+      console.error('Firestore error details:', {
+        message: firestoreError instanceof Error ? firestoreError.message : 'Unknown error',
+        stack: firestoreError instanceof Error ? firestoreError.stack : undefined,
+        name: firestoreError instanceof Error ? firestoreError.name : 'Unknown'
+      });
       
       // Fallback to Google Sheets
       try {
@@ -166,7 +171,12 @@ export default async function handler(
 
       } catch (sheetsError) {
         console.error('Google Sheets fallback also failed:', sheetsError);
-        throw new Error('Failed to create league in both Firestore and Google Sheets');
+        console.error('Google Sheets error details:', {
+          message: sheetsError instanceof Error ? sheetsError.message : 'Unknown error',
+          stack: sheetsError instanceof Error ? sheetsError.stack : undefined,
+          name: sheetsError instanceof Error ? sheetsError.name : 'Unknown'
+        });
+        throw new Error(`Failed to create league in both Firestore and Google Sheets. Firestore error: ${firestoreError instanceof Error ? firestoreError.message : 'Unknown'}. Google Sheets error: ${sheetsError instanceof Error ? sheetsError.message : 'Unknown'}`);
       }
     }
 
