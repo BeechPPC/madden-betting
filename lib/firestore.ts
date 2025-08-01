@@ -176,7 +176,7 @@ export class FirestoreService {
       const q = query(userRolesRef, where('leagueId', '==', leagueId), where('isActive', '==', true));
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as UserRoleDocument);
+      return querySnapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }) as UserRoleDocument);
     } catch (error) {
       console.error('Error getting league members:', error);
       throw new Error(`Failed to get league members: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -214,7 +214,7 @@ export class FirestoreService {
       );
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as BetDocument);
+      return querySnapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }) as BetDocument);
     } catch (error) {
       console.error('Error getting user bets:', error);
       throw new Error(`Failed to get user bets: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -227,7 +227,7 @@ export class FirestoreService {
       const q = query(betsRef, where('leagueId', '==', leagueId), where('isActive', '==', true));
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as BetDocument);
+      return querySnapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }) as BetDocument);
     } catch (error) {
       console.error('Error getting league bets:', error);
       throw new Error(`Failed to get league bets: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -260,7 +260,7 @@ export class FirestoreService {
       const q = query(matchupsRef, where('leagueId', '==', leagueId), where('isActive', '==', true));
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as MatchupDocument);
+      return querySnapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }) as MatchupDocument);
     } catch (error) {
       console.error('Error getting league matchups:', error);
       throw new Error(`Failed to get league matchups: ${error instanceof Error ? error.message : 'Unknown error'}`);

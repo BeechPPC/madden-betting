@@ -235,7 +235,7 @@ export class FirestoreServerService {
       const userRolesRef = db.collection('userRoles');
       const querySnapshot = await userRolesRef.where('leagueId', '==', leagueId).where('isActive', '==', true).get();
       
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as UserRoleDocument);
+      return querySnapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }) as UserRoleDocument);
     } catch (error) {
       console.error('Error getting league members:', error);
       throw new Error(`Failed to get league members: ${error instanceof Error ? error.message : 'Unknown error'}`);
