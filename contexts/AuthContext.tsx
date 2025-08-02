@@ -66,6 +66,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const data = await response.json();
         setUserRole(data.userRole);
         setCurrentLeague(data.league);
+      } else if (response.status === 404) {
+        // User has no role - they need to create or join a league
+        console.log('No user role found - user needs to create or join a league');
+        setUserRole(null);
+        setCurrentLeague(null);
+      } else {
+        console.error('Error fetching user role:', response.status, response.statusText);
+        // Don't throw here to prevent breaking the auth flow
       }
     } catch (error) {
       console.error('Error fetching user role:', error);

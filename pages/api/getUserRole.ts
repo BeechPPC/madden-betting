@@ -29,32 +29,72 @@ export default async function handler(
     try {
       const userRole = await FirestoreServerService.getUserRole(user.uid);
       if (userRole) {
-        return res.status(200).json({
-          role: userRole.role,
-          leagueId: userRole.leagueId,
-          displayName: userRole.displayName,
-          source: 'firestore'
-        });
+        // Fetch the league information
+        const league = await FirestoreServerService.getLeague(userRole.leagueId);
+        if (league) {
+          return res.status(200).json({
+            userRole: {
+              id: userRole.id,
+              userId: userRole.userId,
+              userEmail: userRole.userEmail,
+              leagueId: userRole.leagueId,
+              role: userRole.role,
+              joinedAt: userRole.joinedAt.toDate().toISOString(),
+              displayName: userRole.displayName,
+            },
+            league: {
+              id: league.id,
+              name: league.name,
+              leagueCode: league.leagueCode,
+              adminEmail: league.adminEmail,
+              createdAt: league.createdAt.toDate().toISOString(),
+              isActive: league.isActive,
+              adminUserId: league.adminUserId,
+            },
+            source: 'firestore'
+          });
+        }
       }
     } catch (firestoreError) {
       console.log('Firestore failed, trying Google Sheets fallback:', firestoreError);
       
-             // Fallback to Google Sheets
-       try {
-         const userRoles = await GoogleSheetsService.readUserRoles();
-         const userRole = userRoles.find(role => role.userId === user.uid && (role.isActive !== false));
-         
-         if (userRole) {
-           return res.status(200).json({
-             role: userRole.role,
-             leagueId: userRole.leagueId,
-             displayName: userRole.displayName,
-             source: 'google-sheets'
-           });
-         }
-       } catch (sheetsError) {
-         console.error('Google Sheets fallback also failed:', sheetsError);
-       }
+      // Fallback to Google Sheets
+      try {
+        const userRoles = await GoogleSheetsService.readUserRoles();
+        const userRole = userRoles.find(role => role.userId === user.uid && (role.isActive !== false));
+        
+        if (userRole) {
+          // Fetch league information from Google Sheets
+          const leagues = await GoogleSheetsService.readLeagues();
+          const league = leagues.find(l => l.id === userRole.leagueId);
+          
+          if (league) {
+            return res.status(200).json({
+              userRole: {
+                id: `role-${userRole.userId}-${userRole.leagueId}`,
+                userId: userRole.userId,
+                userEmail: userRole.userEmail,
+                leagueId: userRole.leagueId,
+                role: userRole.role,
+                joinedAt: userRole.joinedAt,
+                displayName: userRole.displayName,
+              },
+              league: {
+                id: league.id,
+                name: league.name,
+                leagueCode: league.id, // In Google Sheets, the ID is the league code
+                adminEmail: league.adminEmail,
+                createdAt: league.createdAt,
+                isActive: league.isActive,
+                adminUserId: '', // Google Sheets doesn't store adminUserId
+              },
+              source: 'google-sheets'
+            });
+          }
+        }
+      } catch (sheetsError) {
+        console.error('Google Sheets fallback also failed:', sheetsError);
+      }
     }
 
     // No role found

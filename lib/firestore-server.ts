@@ -154,6 +154,20 @@ export class FirestoreServerService {
     }
   }
 
+  static async getAllLeagues(): Promise<LeagueDocument[]> {
+    try {
+      initializeFirebaseAdmin();
+      
+      const leaguesRef = db.collection('leagues');
+      const querySnapshot = await leaguesRef.where('isActive', '==', true).get();
+      
+      return querySnapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }) as LeagueDocument);
+    } catch (error) {
+      console.error('Error getting all leagues:', error);
+      throw new Error(`Failed to get all leagues: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   static async updateLeagueMemberCount(leagueId: string, count: number): Promise<void> {
     try {
       initializeFirebaseAdmin();

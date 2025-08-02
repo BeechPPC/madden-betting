@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyAuth } from '../../utils/authMiddleware';
 import { FirestoreServerService } from '../../lib/firestore-server';
 import { GoogleSheetsService } from '../../utils/googleSheets';
+import { generateLeagueId } from '../../lib/utils';
 
 export default async function handler(
   req: NextApiRequest,
@@ -39,16 +40,8 @@ export default async function handler(
       });
     }
 
-    // Generate a unique league code
-    const generateLeagueCode = () => {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let result = '';
-      for (let i = 0; i < 12; i++) {
-        if (i > 0 && i % 3 === 0) result += '-';
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return result;
-    };
+    // Generate a unique league code using the utility function
+    const generateLeagueCode = () => generateLeagueId();
 
     let leagueCode = generateLeagueCode();
     let attempts = 0;
