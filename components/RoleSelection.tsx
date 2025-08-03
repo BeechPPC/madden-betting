@@ -278,7 +278,7 @@ const RoleSelection: React.FC = () => {
                       Player Role
                     </Badge>
                     <p className="text-slate-300 leading-relaxed">
-                      Make picks, compete with friends, view leaderboards, and prove you're the best CFM predictor.
+                      Make picks, compete with friends, view leaderboards, and prove you&apos;re the best CFM predictor.
                     </p>
                     <div className="flex items-center space-x-2 text-blue-400 group-hover:text-blue-300 transition-colors duration-300">
                       <span className="text-sm font-medium">Join Now</span>
