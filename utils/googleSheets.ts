@@ -413,4 +413,31 @@ export class GoogleSheetsService {
       throw new Error('Failed to read user roles from Google Sheets');
     }
   }
+
+  static async readBets(): Promise<BetData[]> {
+    try {
+      const { sheets } = initializeGoogleSheets();
+      const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
+      
+      if (!SPREADSHEET_ID) {
+        throw new Error('GOOGLE_SHEET_ID environment variable is not set');
+      }
+      
+      const response = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Bets!A:E',
+      });
+
+      const rows = response.data.values || [];
+      return rows.slice(1).map((row: any[]) => ({
+        user_name: row[1] || '',
+        matchup_id: row[2] || '',
+        selected_team: row[3] || '',
+        created_at: row[4] || '',
+      }));
+    } catch (error) {
+      console.error('Error reading bets from Google Sheets:', error);
+      throw new Error('Failed to read bets from Google Sheets');
+    }
+  }
 } 

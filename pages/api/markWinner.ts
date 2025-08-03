@@ -1,17 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleSheetsService } from '../../utils/googleSheets';
-import { google } from 'googleapis';
+import { withAuth, AuthenticatedRequest } from '../../utils/authMiddleware';
 
-// Initialize Google Sheets API
-const auth = new google.auth.GoogleAuth({
-  credentials: {
-    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  },
-  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-});
-
-const sheets = google.sheets({ version: 'v4', auth });
+// Use the GoogleSheetsService instead of duplicating setup
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 
 interface MarkWinnerRequest {
@@ -33,8 +24,8 @@ interface UserStats {
   total_picks: number;
 }
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
@@ -50,11 +41,14 @@ export default async function handler(
     }
 
     console.log(`Marking winner for matchup ${matchup_id}: ${winning_team}`);
+    console.log('Authenticated user:', req.user);
 
     // 1. Get all bets for this matchup
-    const allBets = await getAllBets();
+    console.log('Fetching all bets...');
+    const allBets = await GoogleSheetsService.readBets();
+    console.log(`Total bets found: ${allBets.length}`);
+    
     const matchupBets = allBets.filter(bet => bet.matchup_id === matchup_id);
-
     console.log(`Found ${matchupBets.length} bets for matchup ${matchup_id}`);
 
     // 2. Calculate which users got it right/wrong
@@ -67,7 +61,9 @@ export default async function handler(
     console.log('User results:', userResults);
 
     // 3. Get current leaderboard
+    console.log('Fetching current leaderboard...');
     const currentLeaderboard = await GoogleSheetsService.readLeaderboard();
+    console.log(`Current leaderboard entries: ${currentLeaderboard.length}`);
     const userStatsMap = new Map<string, UserStats>();
 
     // Initialize stats for all users who have made bets
@@ -116,10 +112,14 @@ export default async function handler(
       });
 
     // 6. Update the leaderboard in Google Sheets
+    console.log('Updating leaderboard in Google Sheets...');
     await GoogleSheetsService.updateLeaderboard(updatedLeaderboard);
+    console.log('Leaderboard updated successfully');
 
     // 7. Add the result to a Results sheet for tracking
+    console.log('Adding result to tracking sheet...');
     await addResultToSheet(matchup_id, winning_team, userResults);
+    console.log('Result tracking completed');
 
     console.log('Leaderboard updated successfully');
 
@@ -142,28 +142,24 @@ export default async function handler(
   }
 }
 
-async function getAllBets(): Promise<Bet[]> {
-  try {
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: 'Bets!A:E',
-    });
-
-    const rows = response.data.values || [];
-    return rows.slice(1).map((row: any[]) => ({
-      user_name: row[1] || '',
-      matchup_id: row[2] || '',
-      selected_team: row[3] || '',
-      created_at: row[4] || '',
-    }));
-  } catch (error) {
-    console.error('Error reading bets from Google Sheets:', error);
-    throw new Error('Failed to read bets from Google Sheets');
-  }
-}
+export default withAuth(handler);
 
 async function addResultToSheet(matchup_id: string, winning_team: string, userResults: any[]) {
   try {
+    // Import googleapis to initialize sheets
+    const { google } = require('googleapis');
+    
+    // Initialize Google Sheets API
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: process.env.FIREBASE_CLIENT_EMAIL,
+        private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+
     const values = [
       [
         new Date().toISOString(),
