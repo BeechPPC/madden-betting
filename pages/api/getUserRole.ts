@@ -41,6 +41,7 @@ export default async function handler(
               role: userRole.role,
               joinedAt: userRole.joinedAt.toDate().toISOString(),
               displayName: userRole.displayName,
+              isPremium: userRole.isPremium || false,
             },
             league: {
               id: league.id,
@@ -78,6 +79,7 @@ export default async function handler(
                 role: userRole.role,
                 joinedAt: userRole.joinedAt,
                 displayName: userRole.displayName,
+                isPremium: userRole.isPremium || false,
               },
               league: {
                 id: league.id,

@@ -10,6 +10,7 @@ interface UserRole {
   role: 'admin' | 'user';
   joinedAt: Date;
   displayName: string;
+  isPremium?: boolean;
 }
 
 interface League {
@@ -33,6 +34,7 @@ interface AuthContextType {
   joinLeague: (leagueCode: string) => Promise<void>;
   fetchUserRole: () => Promise<void>;
   isAdmin: boolean;
+  isPremium: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -217,6 +219,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     joinLeague,
     fetchUserRole,
     isAdmin: userRole?.role === 'admin',
+    isPremium: userRole?.isPremium || false,
   };
 
   return (

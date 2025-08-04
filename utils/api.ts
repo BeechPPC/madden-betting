@@ -58,4 +58,33 @@ export const makeAuthenticatedRequest = async (url: string, options: RequestInit
     });
     throw error;
   }
+};
+
+export const generateMatchupDescription = async (
+  team1: string,
+  team1_record: string,
+  team2: string,
+  team2_record: string
+): Promise<string> => {
+  try {
+    const response = await makeAuthenticatedRequest('/api/generateMatchupDescription', {
+      method: 'POST',
+      body: JSON.stringify({
+        team1,
+        team1_record,
+        team2,
+        team2_record,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to generate matchup description');
+    }
+
+    const data = await response.json();
+    return data.description;
+  } catch (error) {
+    console.error('Error generating matchup description:', error);
+    return 'Exciting matchup ahead!';
+  }
 }; 

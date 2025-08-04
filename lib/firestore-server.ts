@@ -70,6 +70,7 @@ export interface UserRoleDocument {
   joinedAt: any; // Firestore Timestamp
   displayName: string;
   isActive: boolean;
+  isPremium?: boolean;
 }
 
 export interface BetDocument {

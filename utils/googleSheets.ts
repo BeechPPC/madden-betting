@@ -39,6 +39,7 @@ export interface UserRoleData {
   role: string;
   joinedAt: string;
   isActive?: boolean;
+  isPremium?: boolean;
 }
 
 // Initialize Google Sheets API with better error handling
@@ -329,19 +330,20 @@ export class GoogleSheetsService {
           userRoleData.displayName,
           userRoleData.leagueId,
           userRoleData.role,
-          userRoleData.joinedAt
+          userRoleData.joinedAt,
+          userRoleData.isPremium || false
         ]
       ];
 
       console.log('Writing user role to Google Sheets:', {
         spreadsheetId: SPREADSHEET_ID,
-        range: 'UserRoles!A:G',
+        range: 'UserRoles!A:H',
         values: values[0]
       });
 
       const response = await sheets.spreadsheets.values.append({
         spreadsheetId: SPREADSHEET_ID,
-        range: 'UserRoles!A:G',
+        range: 'UserRoles!A:H',
         valueInputOption: 'RAW',
         requestBody: { values },
       });
@@ -396,7 +398,7 @@ export class GoogleSheetsService {
       
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: 'UserRoles!A:G',
+        range: 'UserRoles!A:H',
       });
 
       const rows = response.data.values || [];
@@ -407,6 +409,7 @@ export class GoogleSheetsService {
         leagueId: row[4] || '',
         role: row[5] || '',
         joinedAt: row[6] || '',
+        isPremium: row[7] === 'true' || false,
       }));
     } catch (error) {
       console.error('Error reading user roles from Google Sheets:', error);

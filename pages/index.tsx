@@ -31,7 +31,7 @@ interface Bet {
 }
 
 export default function Home() {
-  const { user, userRole, currentLeague, loading } = useAuth();
+  const { user, userRole, currentLeague, loading, isPremium } = useAuth();
   const [matchups, setMatchups] = useState<Matchup[]>([]);
   const [selectedPicks, setSelectedPicks] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -296,6 +296,7 @@ export default function Home() {
                             matchup={matchup}
                             selectedTeam={selectedPicks[matchup.id]}
                             onTeamSelect={(team) => handleTeamSelect(matchup.id, team)}
+                            isPremium={isPremium}
                           />
                         </div>
                       ))}
