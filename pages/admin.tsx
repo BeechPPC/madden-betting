@@ -253,7 +253,7 @@ export default function AdminPage() {
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-green-900 mb-2">Get Your Sheet ID</h3>
                       <p className="text-green-800 mb-4">
-                        After making a copy, you'll need the Sheet ID from the URL. The URL will look like this:
+                        After making a copy, you&apos;ll need the Sheet ID from the URL. The URL will look like this:
                       </p>
                       <div className="bg-gray-100 p-3 rounded-md font-mono text-sm text-gray-800 mb-4">
                         https://docs.google.com/spreadsheets/d/<span className="bg-yellow-200 px-1 rounded">YOUR_SHEET_ID_HERE</span>/edit
@@ -279,9 +279,9 @@ export default function AdminPage() {
                         Make sure your sheet is accessible to our system. In your Google Sheet:
                       </p>
                       <ul className="list-disc list-inside text-purple-800 space-y-1 mb-4">
-                        <li>Click "Share" in the top right</li>
-                        <li>Change to "Anyone with the link" can view</li>
-                        <li>Click "Done"</li>
+                        <li>Click &quot;Share&quot; in the top right</li>
+                        <li>Change to &quot;Anyone with the link&quot; can view</li>
+                        <li>Click &quot;Done&quot;</li>
                       </ul>
                       <p className="text-sm text-purple-700">
                         This allows our system to read your league data while keeping it secure
