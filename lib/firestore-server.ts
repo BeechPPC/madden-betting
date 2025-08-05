@@ -59,6 +59,11 @@ export interface LeagueDocument {
   isActive: boolean;
   leagueCode: string;
   memberCount?: number;
+  settings?: {
+    googleSheetId?: string;
+    updatedAt?: any; // Firestore Timestamp
+    updatedBy?: string;
+  };
 }
 
 // Legacy interface for backward compatibility
@@ -128,6 +133,12 @@ export interface MatchupDocument {
 }
 
 export class FirestoreServerService {
+  // Get database instance
+  static getDb() {
+    initializeFirebaseAdmin();
+    return db;
+  }
+
   // League operations
   static async createLeague(leagueData: Omit<LeagueDocument, 'id' | 'createdAt'>): Promise<LeagueDocument> {
     try {

@@ -41,6 +41,7 @@ export default function Home() {
   const [isLoadingMatchups, setIsLoadingMatchups] = useState(false);
   const [matchupsError, setMatchupsError] = useState<string | null>(null);
   const [currentWeek, setCurrentWeek] = useState<number | null>(null);
+  const [showCopyNotification, setShowCopyNotification] = useState(false);
 
   useEffect(() => {
     if (user && userRole && !loading) {
@@ -179,6 +180,16 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Copy Notification */}
+      {showCopyNotification && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-in-out">
+          <div className="bg-emerald-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2">
+            <LucideIcons.Check className="h-4 w-4" />
+            <span className="font-medium">Copied!</span>
+          </div>
+        </div>
+      )}
+
       <main className="container mx-auto px-4 lg:px-6 py-8">
         {/* Migration Banner */}
         <MigrationBanner />
@@ -207,8 +218,8 @@ export default function Home() {
                       if (currentLeague.leagueCode) {
                         const success = await copyToClipboard(currentLeague.leagueCode);
                         if (success) {
-                          // You could add a toast notification here
-                          console.log('League code copied to clipboard');
+                          setShowCopyNotification(true);
+                          setTimeout(() => setShowCopyNotification(false), 2000);
                         }
                       }
                     }}

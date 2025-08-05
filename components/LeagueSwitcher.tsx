@@ -9,9 +9,21 @@ interface LeagueSwitcherProps {
 }
 
 const LeagueSwitcher: React.FC<LeagueSwitcherProps> = ({ className = "" }) => {
-  const { userLeagues, currentLeague, currentMembership, switchLeague, hasMultipleLeagues } = useAuth();
+  const { userLeagues, currentLeague, currentMembership, switchLeague } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Debug logging
+  useEffect(() => {
+    const hasMultipleLeagues = userLeagues.length > 1;
+    console.log('LeagueSwitcher Debug:', {
+      userLeagues: userLeagues,
+      currentLeague: currentLeague,
+      hasMultipleLeagues: hasMultipleLeagues,
+      userLeaguesLength: userLeagues.length,
+      shouldRender: currentLeague && userLeagues.length > 0
+    });
+  }, [userLeagues, currentLeague]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -27,10 +39,17 @@ const LeagueSwitcher: React.FC<LeagueSwitcherProps> = ({ className = "" }) => {
     };
   }, []);
 
-  // Don't render if user has no leagues or only one league
-  if (!currentLeague || !hasMultipleLeagues) {
+  // Don't render if user has no leagues
+  if (!currentLeague || userLeagues.length === 0) {
+    console.log('LeagueSwitcher not rendering because:', {
+      noCurrentLeague: !currentLeague,
+      noLeagues: userLeagues.length === 0,
+      userLeaguesLength: userLeagues.length
+    });
     return null;
   }
+
+  const hasMultipleLeagues = userLeagues.length > 1;
 
   const handleLeagueSwitch = async (leagueId: string) => {
     try {
@@ -69,7 +88,9 @@ const LeagueSwitcher: React.FC<LeagueSwitcherProps> = ({ className = "" }) => {
       {isOpen && (
         <div className="absolute top-full mt-1 w-64 bg-slate-800 rounded-lg shadow-lg border border-slate-700 z-50">
           <div className="p-2">
-            <div className="text-xs text-slate-400 px-2 py-1 mb-1">Your Leagues</div>
+            <div className="text-xs text-slate-400 px-2 py-1 mb-1">
+              {hasMultipleLeagues ? 'Your Leagues' : 'Current League'}
+            </div>
             {userLeagues.map((membership) => (
               <button
                 key={membership.leagueId}

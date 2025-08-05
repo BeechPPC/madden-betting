@@ -108,10 +108,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const userToCheck = currentUser || user;
     if (!userToCheck) return;
     
+    console.log('fetchUserLeagues called for user:', userToCheck.email);
+    
     try {
       const response = await makeAuthenticatedRequest('/api/getUserLeagues');
+      console.log('getUserLeagues response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('getUserLeagues response data:', data);
         
         // Set multi-league data
         setUserLeagues(data.memberships || []);
@@ -144,6 +149,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else {
           setUserRole(null);
         }
+        
+        console.log('Updated state with:', {
+          userLeaguesCount: data.memberships?.length || 0,
+          hasCurrentLeague: !!data.currentLeague,
+          hasCurrentMembership: !!data.currentMembership,
+          hasMultipleLeagues: (data.memberships?.length || 0) > 1
+        });
       } else if (response.status === 404) {
         // User has no memberships - they need to create or join a league
         console.log('No user memberships found - user needs to create or join a league');
@@ -194,22 +206,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const unsubscribe = onAuthStateChange(async (authUser) => {
       if (!isMounted) return;
       
+      console.log('Auth state changed:', {
+        hasUser: !!authUser,
+        userEmail: authUser?.email,
+        userId: authUser?.uid
+      });
+      
       setUser(authUser);
       
       if (authUser) {
         try {
+          console.log('User authenticated, fetching leagues...');
           // Try to fetch multi-league data first
           await fetchUserLeagues(authUser);
         } catch (error) {
           console.error('Error fetching user leagues:', error);
           // Fallback to legacy method
           try {
+            console.log('Falling back to legacy fetchUserRole...');
             await fetchUserRole(authUser);
           } catch (legacyError) {
             console.error('Error fetching user role:', legacyError);
           }
         }
       } else {
+        console.log('User signed out, clearing state...');
         setUserRole(null);
         setCurrentLeague(null);
         setUserLeagues([]);
@@ -409,7 +430,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     fetchUserLeagues,
     isAdmin: userRole?.role === 'admin',
     isPremium: userRole?.isPremium || false,
-    hasMultipleLeagues: userLeagues.length > 1,
+    hasMultipleLeagues: userLeagues.length >= 1, // Changed from > 1 to >= 1 to allow joining additional leagues
   };
 
   return (
