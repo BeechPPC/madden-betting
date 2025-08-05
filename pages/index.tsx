@@ -11,6 +11,8 @@ import MatchupCard from '../components/MatchupCard';
 import Leaderboard from '../components/Leaderboard';
 import UserProfile from '../components/UserProfile';
 import TeamMatchupHeader from '../components/TeamMatchupHeader';
+import LeagueSwitcher from '../components/LeagueSwitcher';
+import MigrationBanner from '../components/MigrationBanner';
 import * as LucideIcons from "lucide-react";
 
 interface Matchup {
@@ -88,6 +90,12 @@ export default function Home() {
       return;
     }
 
+    // Check if all matchups have been picked
+    if (picksCount < matchups.length) {
+      setSubmitMessage(`Please select all ${matchups.length} matchups before submitting. You have selected ${picksCount} of ${matchups.length} picks.`);
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitMessage('');
 
@@ -157,6 +165,7 @@ export default function Home() {
             <span className="text-lg sm:text-xl font-bold text-white">ClutchPicks</span>
           </div>
           <div className="flex items-center space-x-3">
+            <LeagueSwitcher />
             {userRole?.role === 'admin' && (
               <Link
                 href="/admin"
@@ -171,6 +180,9 @@ export default function Home() {
       </header>
 
       <main className="container mx-auto px-4 lg:px-6 py-8">
+        {/* Migration Banner */}
+        <MigrationBanner />
+        
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-center mb-12 gap-6">
           <div className="text-center lg:text-left flex-1">

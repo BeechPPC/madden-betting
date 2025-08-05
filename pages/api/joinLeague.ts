@@ -95,7 +95,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-      // Create the user role for joining the league
+      // Create or update user profile
+      let userProfile = await FirestoreServerService.getUserProfile(userId);
+      if (!userProfile) {
+        userProfile = await FirestoreServerService.createUserProfile({
+          userId: userId,
+          userEmail: userEmail,
+          displayName: displayName,
+          defaultLeagueId: league.id,
+          preferences: {
+            theme: 'dark',
+            notifications: true,
+          },
+        });
+        console.log('User profile created for new member:', userProfile.id);
+      } else if (!userProfile.defaultLeagueId) {
+        // Set this as default league if user doesn't have one
+        await FirestoreServerService.updateUserProfile(userId, { defaultLeagueId: league.id });
+      }
+
+      // Create user league membership
+      const userMembership = await FirestoreServerService.createUserLeagueMembership({
+        userId: userId,
+        userEmail: userEmail,
+        leagueId: league.id,
+        role: 'user',
+        displayName: displayName,
+        isActive: true,
+      });
+
+      // Also create legacy user role for backward compatibility
       const userRole = await FirestoreServerService.createUserRole({
         userId: userId,
         userEmail: userEmail,
@@ -149,6 +178,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           joinedAt: userRole.joinedAt.toDate().toISOString(),
           displayName: userRole.displayName,
         },
+        userMembership: {
+          id: userMembership.id,
+          userId: userMembership.userId,
+          userEmail: userMembership.userEmail,
+          leagueId: userMembership.leagueId,
+          role: userMembership.role,
+          joinedAt: userMembership.joinedAt.toDate().toISOString(),
+          lastAccessedAt: userMembership.lastAccessedAt.toDate().toISOString(),
+          displayName: userMembership.displayName,
+          isActive: userMembership.isActive,
+        },
+        userProfile: userProfile ? {
+          id: userProfile.id,
+          userId: userProfile.userId,
+          userEmail: userProfile.userEmail,
+          displayName: userProfile.displayName,
+          defaultLeagueId: userProfile.defaultLeagueId,
+          preferences: userProfile.preferences,
+          createdAt: userProfile.createdAt.toDate().toISOString(),
+          updatedAt: userProfile.updatedAt.toDate().toISOString(),
+        } : null,
       });
     } catch (firestoreError) {
       console.error('Firestore error joining league:', firestoreError);

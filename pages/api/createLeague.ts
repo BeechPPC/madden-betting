@@ -84,8 +84,43 @@ export default async function handler(
 
       console.log('League created in Firestore successfully:', league.id);
 
-      // Create user role for admin
-      console.log('Creating user role in Firestore...');
+      // Create user profile for admin (if doesn't exist)
+      console.log('Creating/updating user profile in Firestore...');
+      let userProfile = await FirestoreServerService.getUserProfile(adminUserId);
+      if (!userProfile) {
+        userProfile = await FirestoreServerService.createUserProfile({
+          userId: adminUserId,
+          userEmail: adminEmail,
+          displayName: displayName,
+          defaultLeagueId: league.id,
+          preferences: {
+            theme: 'dark',
+            notifications: true,
+          },
+        });
+        console.log('User profile created in Firestore successfully:', userProfile.id);
+      } else {
+        // Update default league if user doesn't have one
+        if (!userProfile.defaultLeagueId) {
+          await FirestoreServerService.updateUserProfile(adminUserId, { defaultLeagueId: league.id });
+        }
+      }
+
+      // Create user league membership for admin
+      console.log('Creating user league membership in Firestore...');
+      const userMembership = await FirestoreServerService.createUserLeagueMembership({
+        userId: adminUserId,
+        userEmail: adminEmail,
+        displayName: displayName,
+        leagueId: league.id,
+        role: 'admin',
+        isActive: true,
+      });
+
+      console.log('User league membership created in Firestore successfully:', userMembership.id);
+
+      // Also create legacy user role for backward compatibility
+      console.log('Creating legacy user role in Firestore...');
       const userRole = await FirestoreServerService.createUserRole({
         userId: adminUserId,
         userEmail: adminEmail,
@@ -95,7 +130,7 @@ export default async function handler(
         isActive: true,
       });
 
-      console.log('User role created in Firestore successfully:', userRole.id);
+      console.log('Legacy user role created in Firestore successfully:', userRole.id);
 
       return res.status(201).json({
         success: true,
@@ -115,6 +150,27 @@ export default async function handler(
           joinedAt: userRole.joinedAt,
           displayName: userRole.displayName,
         },
+        userMembership: {
+          id: userMembership.id,
+          userId: userMembership.userId,
+          userEmail: userMembership.userEmail,
+          leagueId: userMembership.leagueId,
+          role: userMembership.role,
+          joinedAt: userMembership.joinedAt,
+          lastAccessedAt: userMembership.lastAccessedAt,
+          displayName: userMembership.displayName,
+          isActive: userMembership.isActive,
+        },
+        userProfile: userProfile ? {
+          id: userProfile.id,
+          userId: userProfile.userId,
+          userEmail: userProfile.userEmail,
+          displayName: userProfile.displayName,
+          defaultLeagueId: userProfile.defaultLeagueId,
+          preferences: userProfile.preferences,
+          createdAt: userProfile.createdAt,
+          updatedAt: userProfile.updatedAt,
+        } : null,
         source: 'firestore'
       });
 

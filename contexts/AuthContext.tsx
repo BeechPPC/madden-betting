@@ -3,6 +3,7 @@ import { User } from 'firebase/auth';
 import { auth, signInWithGoogle, signOutUser, onAuthStateChange } from '../lib/firebase';
 import { makeAuthenticatedRequest } from '../utils/api';
 
+// Legacy interface for backward compatibility
 interface UserRole {
   userId: string;
   userEmail: string;
@@ -13,6 +14,36 @@ interface UserRole {
   isPremium?: boolean;
 }
 
+// New interface for multi-league support
+interface UserLeagueMembership {
+  id: string;
+  userId: string;
+  userEmail: string;
+  leagueId: string;
+  leagueName: string;
+  leagueCode: string;
+  role: 'admin' | 'user';
+  joinedAt: Date;
+  lastAccessedAt: Date;
+  displayName: string;
+  isPremium?: boolean;
+  isActive: boolean;
+}
+
+interface UserProfile {
+  id: string;
+  userId: string;
+  userEmail: string;
+  displayName: string;
+  defaultLeagueId?: string;
+  preferences: {
+    theme?: string;
+    notifications?: boolean;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface League {
   id: string;
   name: string;
@@ -21,20 +52,30 @@ interface League {
   createdAt: Date;
   isActive: boolean;
   leagueCode: string;
+  memberCount?: number;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  // Legacy properties for backward compatibility
   userRole: UserRole | null;
   currentLeague: League | null;
+  // New multi-league properties
+  userLeagues: UserLeagueMembership[];
+  userProfile: UserProfile | null;
+  currentMembership: UserLeagueMembership | null;
+  // Methods
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   createLeague: (leagueName: string) => Promise<League>;
   joinLeague: (leagueCode: string) => Promise<void>;
-  fetchUserRole: () => Promise<void>;
+  switchLeague: (leagueId: string) => Promise<void>;
+  fetchUserLeagues: () => Promise<void>;
+  // Computed properties
   isAdmin: boolean;
   isPremium: boolean;
+  hasMultipleLeagues: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,10 +95,74 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  // Legacy state for backward compatibility
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [currentLeague, setCurrentLeague] = useState<League | null>(null);
+  // New multi-league state
+  const [userLeagues, setUserLeagues] = useState<UserLeagueMembership[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [currentMembership, setCurrentMembership] = useState<UserLeagueMembership | null>(null);
 
-  // Memoize fetchUserRole to prevent unnecessary re-renders and stale closures
+  // Memoize fetchUserLeagues to prevent unnecessary re-renders and stale closures
+  const fetchUserLeagues = useCallback(async (currentUser?: User | null) => {
+    const userToCheck = currentUser || user;
+    if (!userToCheck) return;
+    
+    try {
+      const response = await makeAuthenticatedRequest('/api/getUserLeagues');
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Set multi-league data
+        setUserLeagues(data.memberships || []);
+        setUserProfile(data.userProfile ? {
+          ...data.userProfile,
+          createdAt: new Date(data.userProfile.createdAt),
+          updatedAt: new Date(data.userProfile.updatedAt),
+        } : null);
+        setCurrentLeague(data.currentLeague ? {
+          ...data.currentLeague,
+          createdAt: new Date(data.currentLeague.createdAt),
+        } : null);
+        setCurrentMembership(data.currentMembership ? {
+          ...data.currentMembership,
+          joinedAt: new Date(data.currentMembership.joinedAt),
+          lastAccessedAt: new Date(data.currentMembership.lastAccessedAt),
+        } : null);
+        
+        // Set legacy data for backward compatibility
+        if (data.currentMembership) {
+          setUserRole({
+            userId: data.currentMembership.userId,
+            userEmail: data.currentMembership.userEmail,
+            leagueId: data.currentMembership.leagueId,
+            role: data.currentMembership.role,
+            joinedAt: new Date(data.currentMembership.joinedAt),
+            displayName: data.currentMembership.displayName,
+            isPremium: data.currentMembership.isPremium,
+          });
+        } else {
+          setUserRole(null);
+        }
+      } else if (response.status === 404) {
+        // User has no memberships - they need to create or join a league
+        console.log('No user memberships found - user needs to create or join a league');
+        setUserLeagues([]);
+        setUserProfile(null);
+        setCurrentLeague(null);
+        setCurrentMembership(null);
+        setUserRole(null);
+      } else {
+        console.error('Error fetching user leagues:', response.status, response.statusText);
+        // Don't throw here to prevent breaking the auth flow
+      }
+    } catch (error) {
+      console.error('Error fetching user leagues:', error);
+      // Don't throw here to prevent breaking the auth flow
+    }
+  }, [user]);
+
+  // Legacy fetchUserRole for backward compatibility
   const fetchUserRole = useCallback(async (currentUser?: User | null) => {
     const userToCheck = currentUser || user;
     if (!userToCheck) return;
@@ -93,14 +198,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (authUser) {
         try {
-          // Pass the authUser directly to avoid race conditions
-          await fetchUserRole(authUser);
+          // Try to fetch multi-league data first
+          await fetchUserLeagues(authUser);
         } catch (error) {
-          console.error('Error fetching user role:', error);
+          console.error('Error fetching user leagues:', error);
+          // Fallback to legacy method
+          try {
+            await fetchUserRole(authUser);
+          } catch (legacyError) {
+            console.error('Error fetching user role:', legacyError);
+          }
         }
       } else {
         setUserRole(null);
         setCurrentLeague(null);
+        setUserLeagues([]);
+        setUserProfile(null);
+        setCurrentMembership(null);
       }
       
       if (isMounted) {
@@ -113,7 +227,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       isMounted = false;
       unsubscribe();
     };
-  }, [fetchUserRole]);
+  }, [fetchUserLeagues, fetchUserRole]);
 
   const createLeague = async (leagueName: string): Promise<League> => {
     if (!user) throw new Error('User not authenticated');
@@ -155,10 +269,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const data = await response.json();
     console.log('createLeague success response:', data);
-    console.log('Setting userRole:', data.userRole);
-    console.log('Setting currentLeague:', data.league);
-    setUserRole(data.userRole);
-    setCurrentLeague(data.league);
+    
+    // Update state with new multi-league data
+    if (data.userMembership) {
+      const newMembership: UserLeagueMembership = {
+        ...data.userMembership,
+        joinedAt: new Date(data.userMembership.joinedAt),
+        lastAccessedAt: new Date(data.userMembership.lastAccessedAt),
+      };
+      setUserLeagues(prev => [newMembership, ...prev]);
+      setCurrentMembership(newMembership);
+    }
+    
+    if (data.userProfile) {
+      const newProfile: UserProfile = {
+        ...data.userProfile,
+        createdAt: new Date(data.userProfile.createdAt),
+        updatedAt: new Date(data.userProfile.updatedAt),
+      };
+      setUserProfile(newProfile);
+    }
+    
+    // Set legacy data for backward compatibility
+    if (data.userRole) {
+      setUserRole(data.userRole);
+    }
+    if (data.league) {
+      setCurrentLeague(data.league);
+    }
+    
     return data.league;
   };
 
@@ -181,8 +320,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     const data = await response.json();
-    setUserRole(data.userRole);
-    setCurrentLeague(data.league);
+    
+    // Update state with new multi-league data
+    if (data.userMembership) {
+      const newMembership: UserLeagueMembership = {
+        ...data.userMembership,
+        joinedAt: new Date(data.userMembership.joinedAt),
+        lastAccessedAt: new Date(data.userMembership.lastAccessedAt),
+      };
+      setUserLeagues(prev => [newMembership, ...prev]);
+      setCurrentMembership(newMembership);
+    }
+    
+    if (data.userProfile) {
+      const newProfile: UserProfile = {
+        ...data.userProfile,
+        createdAt: new Date(data.userProfile.createdAt),
+        updatedAt: new Date(data.userProfile.updatedAt),
+      };
+      setUserProfile(newProfile);
+    }
+    
+    // Set legacy data for backward compatibility
+    if (data.userRole) {
+      setUserRole(data.userRole);
+    }
+    if (data.league) {
+      setCurrentLeague(data.league);
+    }
+  };
+
+  const switchLeague = async (leagueId: string): Promise<void> => {
+    if (!user) throw new Error('User not authenticated');
+    
+    const response = await makeAuthenticatedRequest('/api/switchLeague', {
+      method: 'POST',
+      body: JSON.stringify({ leagueId }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to switch league');
+    }
+
+    // Refresh user leagues to get updated data
+    await fetchUserLeagues();
   };
 
   const signIn = async () => {
@@ -202,6 +384,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await signOutUser();
       setUserRole(null);
       setCurrentLeague(null);
+      setUserLeagues([]);
+      setUserProfile(null);
+      setCurrentMembership(null);
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;
@@ -213,13 +398,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     userRole,
     currentLeague,
+    userLeagues,
+    userProfile,
+    currentMembership,
     signIn,
     signOut,
     createLeague,
     joinLeague,
-    fetchUserRole,
+    switchLeague,
+    fetchUserLeagues,
     isAdmin: userRole?.role === 'admin',
     isPremium: userRole?.isPremium || false,
+    hasMultipleLeagues: userLeagues.length > 1,
   };
 
   return (

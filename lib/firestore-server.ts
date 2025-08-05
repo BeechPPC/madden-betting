@@ -61,6 +61,7 @@ export interface LeagueDocument {
   memberCount?: number;
 }
 
+// Legacy interface for backward compatibility
 export interface UserRoleDocument {
   id: string;
   userId: string;
@@ -71,6 +72,35 @@ export interface UserRoleDocument {
   displayName: string;
   isActive: boolean;
   isPremium?: boolean;
+}
+
+// New interface for multi-league support
+export interface UserLeagueMembershipDocument {
+  id: string;
+  userId: string;
+  userEmail: string;
+  leagueId: string;
+  role: 'admin' | 'user';
+  joinedAt: any; // Firestore Timestamp
+  displayName: string;
+  isActive: boolean;
+  isPremium?: boolean;
+  lastAccessedAt: any; // Firestore Timestamp
+}
+
+// New interface for user profiles
+export interface UserProfileDocument {
+  id: string;
+  userId: string;
+  userEmail: string;
+  displayName: string;
+  defaultLeagueId?: string;
+  preferences: {
+    theme?: string;
+    notifications?: boolean;
+  };
+  createdAt: any; // Firestore Timestamp
+  updatedAt: any; // Firestore Timestamp
 }
 
 export interface BetDocument {
@@ -265,6 +295,206 @@ export class FirestoreServerService {
     } catch (error) {
       console.error('Error checking league code existence:', error);
       return false;
+    }
+  }
+
+  // Multi-league support methods
+  
+  // User Profile operations
+  static async createUserProfile(userProfileData: Omit<UserProfileDocument, 'id' | 'createdAt' | 'updatedAt'>): Promise<UserProfileDocument> {
+    try {
+      initializeFirebaseAdmin();
+      
+      const userProfileRef = db.collection('userProfiles').doc();
+      const userProfileDoc: UserProfileDocument = {
+        ...userProfileData,
+        id: userProfileRef.id,
+        createdAt: admin.firestore.Timestamp.now(),
+        updatedAt: admin.firestore.Timestamp.now(),
+      };
+
+      await userProfileRef.set(userProfileDoc);
+      console.log('User profile created successfully:', userProfileDoc.id);
+      return userProfileDoc;
+    } catch (error) {
+      console.error('Error creating user profile:', error);
+      throw new Error(`Failed to create user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  static async getUserProfile(userId: string): Promise<UserProfileDocument | null> {
+    try {
+      initializeFirebaseAdmin();
+      
+      const userProfileRef = db.collection('userProfiles').doc(userId);
+      const userProfileSnap = await userProfileRef.get();
+      
+      if (userProfileSnap.exists) {
+        return userProfileSnap.data() as UserProfileDocument;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+      throw new Error(`Failed to get user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  static async updateUserProfile(userId: string, updateData: Partial<UserProfileDocument>): Promise<void> {
+    try {
+      initializeFirebaseAdmin();
+      
+      const userProfileRef = db.collection('userProfiles').doc(userId);
+      await userProfileRef.update({
+        ...updateData,
+        updatedAt: admin.firestore.Timestamp.now(),
+      });
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      throw new Error(`Failed to update user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // User League Membership operations
+  static async createUserLeagueMembership(membershipData: Omit<UserLeagueMembershipDocument, 'id' | 'joinedAt' | 'lastAccessedAt'>): Promise<UserLeagueMembershipDocument> {
+    try {
+      initializeFirebaseAdmin();
+      
+      const membershipRef = db.collection('userLeagueMemberships').doc();
+      const membershipDoc: UserLeagueMembershipDocument = {
+        ...membershipData,
+        id: membershipRef.id,
+        joinedAt: admin.firestore.Timestamp.now(),
+        lastAccessedAt: admin.firestore.Timestamp.now(),
+        isActive: true,
+      };
+
+      await membershipRef.set(membershipDoc);
+      console.log('User league membership created successfully:', membershipDoc.id);
+      return membershipDoc;
+    } catch (error) {
+      console.error('Error creating user league membership:', error);
+      throw new Error(`Failed to create user league membership: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  static async getUserLeagueMemberships(userId: string): Promise<UserLeagueMembershipDocument[]> {
+    try {
+      initializeFirebaseAdmin();
+      
+      const membershipsRef = db.collection('userLeagueMemberships');
+      const querySnapshot = await membershipsRef
+        .where('userId', '==', userId)
+        .where('isActive', '==', true)
+        .orderBy('lastAccessedAt', 'desc')
+        .get();
+      
+      return querySnapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }) as UserLeagueMembershipDocument);
+    } catch (error) {
+      console.error('Error getting user league memberships:', error);
+      throw new Error(`Failed to get user league memberships: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  static async getUserLeagueMembership(userId: string, leagueId: string): Promise<UserLeagueMembershipDocument | null> {
+    try {
+      initializeFirebaseAdmin();
+      
+      const membershipsRef = db.collection('userLeagueMemberships');
+      const querySnapshot = await membershipsRef
+        .where('userId', '==', userId)
+        .where('leagueId', '==', leagueId)
+        .where('isActive', '==', true)
+        .get();
+      
+      if (!querySnapshot.empty) {
+        const doc = querySnapshot.docs[0];
+        return { id: doc.id, ...doc.data() } as UserLeagueMembershipDocument;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting user league membership:', error);
+      throw new Error(`Failed to get user league membership: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  static async updateMembershipAccess(userId: string, leagueId: string): Promise<void> {
+    try {
+      initializeFirebaseAdmin();
+      
+      const membership = await this.getUserLeagueMembership(userId, leagueId);
+      if (membership) {
+        const membershipRef = db.collection('userLeagueMemberships').doc(membership.id);
+        await membershipRef.update({
+          lastAccessedAt: admin.firestore.Timestamp.now(),
+        });
+      }
+    } catch (error) {
+      console.error('Error updating membership access:', error);
+      throw new Error(`Failed to update membership access: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  static async deactivateMembership(userId: string, leagueId: string): Promise<void> {
+    try {
+      initializeFirebaseAdmin();
+      
+      const membership = await this.getUserLeagueMembership(userId, leagueId);
+      if (membership) {
+        const membershipRef = db.collection('userLeagueMemberships').doc(membership.id);
+        await membershipRef.update({
+          isActive: false,
+        });
+      }
+    } catch (error) {
+      console.error('Error deactivating membership:', error);
+      throw new Error(`Failed to deactivate membership: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // Migration helper methods
+  static async migrateUserToMultiLeague(userId: string): Promise<void> {
+    try {
+      // Check if user already has a profile
+      const existingProfile = await this.getUserProfile(userId);
+      if (existingProfile) {
+        console.log('User profile already exists for:', userId);
+        return;
+      }
+
+      // Get existing user role
+      const existingRole = await this.getUserRole(userId);
+      if (!existingRole) {
+        console.log('No existing user role found for:', userId);
+        return;
+      }
+
+      // Create user profile
+      await this.createUserProfile({
+        userId: existingRole.userId,
+        userEmail: existingRole.userEmail,
+        displayName: existingRole.displayName,
+        defaultLeagueId: existingRole.leagueId,
+        preferences: {
+          theme: 'dark',
+          notifications: true,
+        },
+      });
+
+      // Create user league membership
+      await this.createUserLeagueMembership({
+        userId: existingRole.userId,
+        userEmail: existingRole.userEmail,
+        leagueId: existingRole.leagueId,
+        role: existingRole.role,
+        displayName: existingRole.displayName,
+        isPremium: existingRole.isPremium,
+        isActive: true,
+      });
+
+      console.log('Successfully migrated user to multi-league:', userId);
+    } catch (error) {
+      console.error('Error migrating user to multi-league:', error);
+      throw error;
     }
   }
 } 
