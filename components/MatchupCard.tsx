@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import TeamLogo from './TeamLogo';
 import { generateMatchupDescription } from '../utils/api';
 
@@ -22,13 +22,7 @@ const MatchupCard: React.FC<MatchupCardProps> = ({ matchup, selectedTeam, onTeam
   const [aiDescription, setAiDescription] = useState<string>('');
   const [isLoadingDescription, setIsLoadingDescription] = useState(false);
 
-  useEffect(() => {
-    if (isPremium) {
-      generateDescription();
-    }
-  }, [isPremium, matchup]);
-
-  const generateDescription = async () => {
+  const generateDescription = useCallback(async () => {
     if (!isPremium) return;
     
     setIsLoadingDescription(true);
@@ -46,7 +40,13 @@ const MatchupCard: React.FC<MatchupCardProps> = ({ matchup, selectedTeam, onTeam
     } finally {
       setIsLoadingDescription(false);
     }
-  };
+  }, [isPremium, matchup.team1, matchup.team1_record, matchup.team2, matchup.team2_record]);
+
+  useEffect(() => {
+    if (isPremium) {
+      generateDescription();
+    }
+  }, [isPremium, generateDescription]);
 
   return (
     <div className="relative group">

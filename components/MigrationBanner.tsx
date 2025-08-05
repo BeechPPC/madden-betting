@@ -63,7 +63,7 @@ const MigrationBanner: React.FC = () => {
         <div className="flex-1">
           <h3 className="font-medium text-blue-400 mb-1">New Multi-League Feature Available!</h3>
           <p className="text-sm text-blue-300 mb-3">
-            We've added support for joining multiple leagues! Click below to migrate your account and unlock this new feature.
+            We&apos;ve added support for joining multiple leagues! Click below to migrate your account and unlock this new feature.
           </p>
           <div className="flex space-x-3">
             <Button
