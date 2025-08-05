@@ -290,10 +290,10 @@ export default function LandingPage() {
               <CardHeader className="text-center pb-8 pt-8">
                 <CardTitle className="text-3xl text-white group-hover:text-emerald-200 transition-colors duration-300">Premium</CardTitle>
                 <div className="text-5xl font-bold text-white mt-6">
-                  $9.99<span className="text-xl text-slate-400">/one-time</span>
+                  $4.99usd<span className="text-xl text-slate-400">/one-time</span>
                 </div>
                 <CardDescription className="text-slate-300 mt-4 text-lg">
-                  Unlock the full power of advanced CFM betting
+                  Unlock the full power of advanced CFM tipping
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">

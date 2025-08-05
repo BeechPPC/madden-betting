@@ -61,6 +61,9 @@
   body {
     @apply bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50;
     background-attachment: fixed;
+    background-size: cover;
+    min-height: 100vh;
+    overflow-x: hidden;
   }
 }
 
@@ -294,6 +297,7 @@
 @media (max-width: 640px) {
   .container {
     @apply px-4;
+    max-width: 100%;
   }
   
   .sport-header {
@@ -314,6 +318,184 @@
   .sticky {
     position: -webkit-sticky;
     position: sticky;
+  }
+  
+  /* Mobile background fixes */
+  body {
+    background-attachment: scroll;
+    background-size: 100% 100%;
+  }
+  
+  /* Mobile container improvements */
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  /* Mobile table improvements */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Mobile card improvements */
+  .card, .card-sport {
+    @apply mx-2 sm:mx-0;
+  }
+  
+  /* Mobile button improvements */
+  .btn-primary, .btn-secondary, .btn-accent {
+    @apply text-sm px-4 py-2;
+  }
+  
+  /* Mobile form improvements */
+  .input-field {
+    @apply text-base;
+  }
+  
+  /* Mobile grid improvements */
+  .grid {
+    gap: 0.75rem;
+  }
+  
+  /* Mobile spacing improvements */
+  .space-y-3 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1.5rem;
+  }
+  
+  /* Mobile padding improvements */
+  .p-4 {
+    padding: 1rem;
+  }
+  
+  .p-6 {
+    padding: 1.5rem;
+  }
+  
+  .px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .py-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  .py-6 {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+  
+  .py-8 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+  
+  /* Mobile margin improvements */
+  .mb-4 {
+    margin-bottom: 1rem;
+  }
+  
+  .mb-6 {
+    margin-bottom: 1.5rem;
+  }
+  
+  .mb-8 {
+    margin-bottom: 2rem;
+  }
+  
+  .mt-4 {
+    margin-top: 1rem;
+  }
+  
+  .mt-6 {
+    margin-top: 1.5rem;
+  }
+  
+  .mt-8 {
+    margin-top: 2rem;
+  }
+}
+
+/* Additional mobile optimizations */
+@media (max-width: 480px) {
+  /* Extra small mobile devices */
+  .container {
+    @apply px-3;
+  }
+  
+  .card, .card-sport {
+    @apply mx-1;
+  }
+  
+  .btn-primary, .btn-secondary, .btn-accent {
+    @apply text-sm px-3 py-2;
+  }
+  
+  .p-4 {
+    padding: 0.75rem;
+  }
+  
+  .p-6 {
+    padding: 1rem;
+  }
+  
+  .px-4 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  .py-4 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+  
+  .py-6 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  .py-8 {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+}
+
+/* Ensure proper viewport handling */
+@viewport {
+  width: device-width;
+  initial-scale: 1;
+  maximum-scale: 1;
+  user-scalable: no;
+}
+
+/* Prevent horizontal scroll on mobile */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Mobile touch improvements */
+@media (hover: none) and (pointer: coarse) {
+  .btn-primary:hover, .btn-secondary:hover, .btn-accent:hover {
+    transform: none;
+  }
+  
+  .card-sport:hover {
+    transform: none;
+  }
+  
+  .team-card:hover {
+    transform: none;
   }
 }
 

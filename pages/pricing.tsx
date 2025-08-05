@@ -132,11 +132,11 @@ const PricingPage: React.FC = () => {
                 <h3 className="text-2xl font-bold text-white mb-2">Premium</h3>
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
-                    $9.99
+                    $4.99usd
                   </span>
-                  <span className="text-slate-400">/month</span>
+                  <span className="text-slate-400">/one-time payment</span>
                 </div>
-                <p className="text-slate-400 mt-2">For serious bettors</p>
+                <p className="text-slate-400 mt-2">For serious league commissioners</p>
               </div>
 
               <div className="space-y-4 mb-8">
