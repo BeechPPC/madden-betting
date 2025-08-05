@@ -190,7 +190,7 @@ export default function Home() {
               <div className="flex items-center justify-center lg:justify-start space-x-3">
                 <LucideIcons.Trophy className="h-8 w-8 text-emerald-400" />
                 <h1 className="text-3xl sm:text-4xl font-bold text-white">
-                  Madden CFM Betting
+                  {currentLeague ? `${currentLeague.name} - ` : ''}Madden CFM Tipping
                 </h1>
               </div>
               <p className="text-lg text-slate-300">
