@@ -59,6 +59,10 @@ export interface LeagueDocument {
   isActive: boolean;
   leagueCode: string;
   memberCount?: number;
+  // Payment fields for per-league one-time payment
+  isPaid: boolean;
+  paidAt?: any; // Firestore Timestamp
+  paymentId?: string; // Stripe payment intent ID
   settings?: {
     googleSheetId?: string;
     updatedAt?: any; // Firestore Timestamp
@@ -150,6 +154,7 @@ export class FirestoreServerService {
         id: leagueRef.id,
         createdAt: admin.firestore.Timestamp.now(),
         memberCount: 1, // Start with admin as first member
+        isPaid: false, // New leagues start as unpaid
       };
 
       await leagueRef.set(leagueDoc);
@@ -236,6 +241,23 @@ export class FirestoreServerService {
     } catch (error) {
       console.error('Error updating league Google Sheet ID:', error);
       throw new Error(`Failed to update league Google Sheet ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  static async updateLeaguePaymentStatus(leagueId: string, paymentId: string): Promise<void> {
+    try {
+      initializeFirebaseAdmin();
+      
+      const leagueRef = db.collection('leagues').doc(leagueId);
+      await leagueRef.update({
+        isPaid: true,
+        paidAt: admin.firestore.Timestamp.now(),
+        paymentId: paymentId,
+      });
+      console.log(`Updated payment status for league ${leagueId}: paid with payment ID ${paymentId}`);
+    } catch (error) {
+      console.error('Error updating league payment status:', error);
+      throw new Error(`Failed to update league payment status: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

@@ -87,4 +87,23 @@ export const generateMatchupDescription = async (
     console.error('Error generating matchup description:', error);
     return 'Exciting matchup ahead!';
   }
+};
+
+export const createPaymentIntent = async (leagueId: string): Promise<{ clientSecret: string; paymentIntentId: string }> => {
+  try {
+    const response = await makeAuthenticatedRequest('/api/createPaymentIntent', {
+      method: 'POST',
+      body: JSON.stringify({ leagueId }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create payment intent');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating payment intent:', error);
+    throw error;
+  }
 }; 

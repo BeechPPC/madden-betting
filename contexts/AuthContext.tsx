@@ -53,6 +53,10 @@ interface League {
   isActive: boolean;
   leagueCode: string;
   memberCount?: number;
+  // Payment fields for per-league one-time payment
+  isPaid: boolean;
+  paidAt?: Date;
+  paymentId?: string;
 }
 
 interface AuthContextType {
@@ -128,6 +132,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setCurrentLeague(data.currentLeague ? {
           ...data.currentLeague,
           createdAt: new Date(data.currentLeague.createdAt),
+          paidAt: data.currentLeague.paidAt ? new Date(data.currentLeague.paidAt) : undefined,
         } : null);
         setCurrentMembership(data.currentMembership ? {
           ...data.currentMembership,
@@ -429,7 +434,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     switchLeague,
     fetchUserLeagues,
     isAdmin: userRole?.role === 'admin',
-    isPremium: userRole?.isPremium || false,
+    isPremium: currentLeague?.isPaid || false, // Use league payment status instead of user premium
     hasMultipleLeagues: userLeagues.length >= 1, // Changed from > 1 to >= 1 to allow joining additional leagues
   };
 

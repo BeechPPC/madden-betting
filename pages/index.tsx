@@ -13,6 +13,7 @@ import UserProfile from '../components/UserProfile';
 import TeamMatchupHeader from '../components/TeamMatchupHeader';
 import LeagueSwitcher from '../components/LeagueSwitcher';
 import MigrationBanner from '../components/MigrationBanner';
+import LeagueUpgradeButton from '../components/LeagueUpgradeButton';
 import * as LucideIcons from "lucide-react";
 
 interface Matchup {
@@ -264,6 +265,27 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
+                
+                {/* League Upgrade Button for unpaid leagues */}
+                {currentLeague && !currentLeague.isPaid && (
+                  <div className="mb-6 p-4 bg-gradient-to-r from-amber-900/20 to-orange-900/20 border border-amber-700/30 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-white mb-2">
+                          🚀 Unlock Premium Features
+                        </h3>
+                        <p className="text-slate-300 text-sm mb-3">
+                          Upgrade your league to get AI matchup descriptions, advanced statistics, and more premium features.
+                        </p>
+                      </div>
+                      <LeagueUpgradeButton 
+                        leagueId={currentLeague.id}
+                        leagueName={currentLeague.name}
+                        className="flex-shrink-0"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <form onSubmit={handleSubmit}>

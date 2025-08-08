@@ -101,6 +101,10 @@ export default async function handler(
           isActive: league!.isActive,
           adminUserId: league!.adminUserId,
           memberCount: league!.memberCount,
+          // Payment fields for per-league one-time payment
+          isPaid: league!.isPaid || false,
+          paidAt: league!.paidAt ? league!.paidAt.toDate().toISOString() : undefined,
+          paymentId: league!.paymentId,
         })),
         currentLeague: currentLeague ? {
           id: currentLeague.id,
@@ -111,6 +115,10 @@ export default async function handler(
           isActive: currentLeague.isActive,
           adminUserId: currentLeague.adminUserId,
           memberCount: currentLeague.memberCount,
+          // Payment fields for per-league one-time payment
+          isPaid: currentLeague.isPaid || false,
+          paidAt: currentLeague.paidAt ? currentLeague.paidAt.toDate().toISOString() : undefined,
+          paymentId: currentLeague.paymentId,
         } : null,
         currentMembership: currentMembership ? {
           id: currentMembership.id,

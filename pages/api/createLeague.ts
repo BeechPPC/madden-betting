@@ -80,6 +80,7 @@ export default async function handler(
         adminEmail: adminEmail,
         isActive: true,
         leagueCode: leagueCode,
+        isPaid: false, // New leagues start as unpaid
       });
 
       console.log('League created in Firestore successfully:', league.id);
