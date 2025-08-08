@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import TeamLogo from './TeamLogo';
 import { generateMatchupDescription } from '../utils/api';
 
@@ -18,14 +18,31 @@ interface MatchupCardProps {
   isPremium?: boolean;
 }
 
+// Simple in-memory cache for AI descriptions
+const descriptionCache = new Map<string, string>();
+
 const MatchupCard: React.FC<MatchupCardProps> = ({ matchup, selectedTeam, onTeamSelect, isPremium = false }) => {
   const [aiDescription, setAiDescription] = useState<string>('');
   const [isLoadingDescription, setIsLoadingDescription] = useState(false);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
+
+  // Create a cache key based on matchup data
+  const cacheKey = useMemo(() => {
+    return `${matchup.team1}-${matchup.team1_record}-${matchup.team2}-${matchup.team2_record}`;
+  }, [matchup.team1, matchup.team1_record, matchup.team2, matchup.team2_record]);
 
   const generateDescription = useCallback(async () => {
     if (!isPremium) return;
     
+    // Check cache first
+    if (descriptionCache.has(cacheKey)) {
+      setAiDescription(descriptionCache.get(cacheKey)!);
+      return;
+    }
+    
     setIsLoadingDescription(true);
+    setDescriptionError(null);
+    
     try {
       const description = await generateMatchupDescription(
         matchup.team1,
@@ -33,20 +50,48 @@ const MatchupCard: React.FC<MatchupCardProps> = ({ matchup, selectedTeam, onTeam
         matchup.team2,
         matchup.team2_record
       );
+      
+      // Cache the result
+      descriptionCache.set(cacheKey, description);
       setAiDescription(description);
     } catch (error) {
       console.error('Error generating AI description:', error);
+      setDescriptionError('Failed to generate AI analysis');
       setAiDescription('Exciting matchup ahead!');
     } finally {
       setIsLoadingDescription(false);
     }
-  }, [isPremium, matchup.team1, matchup.team1_record, matchup.team2, matchup.team2_record]);
+  }, [isPremium, matchup.team1, matchup.team1_record, matchup.team2, matchup.team2_record, cacheKey]);
 
   useEffect(() => {
     if (isPremium) {
       generateDescription();
     }
   }, [isPremium, generateDescription]);
+
+  // Get a fallback description based on team records
+  const getFallbackDescription = useCallback(() => {
+    const parseRecord = (record: string) => {
+      const match = record.match(/(\d+)-(\d+)/);
+      if (match) {
+        return { wins: parseInt(match[1]), losses: parseInt(match[2]) };
+      }
+      return { wins: 0, losses: 0 };
+    };
+
+    const team1Stats = parseRecord(matchup.team1_record);
+    const team2Stats = parseRecord(matchup.team2_record);
+    
+    const team1WinRate = team1Stats.wins / (team1Stats.wins + team1Stats.losses) || 0;
+    const team2WinRate = team2Stats.wins / (team2Stats.wins + team2Stats.losses) || 0;
+    
+    if (Math.abs(team1WinRate - team2WinRate) < 0.1) {
+      return "Evenly matched teams battle for supremacy";
+    }
+    
+    const strongerTeam = team1WinRate > team2WinRate ? matchup.team1 : matchup.team2;
+    return `${strongerTeam} favored in this matchup`;
+  }, [matchup.team1, matchup.team1_record, matchup.team2, matchup.team2_record]);
 
   return (
     <div className="relative group">
@@ -74,11 +119,35 @@ const MatchupCard: React.FC<MatchupCardProps> = ({ matchup, selectedTeam, onTeam
                   <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-purple-500 mr-2"></div>
                   <span className="text-xs font-medium text-purple-700">AI analyzing matchup...</span>
                 </div>
+              ) : descriptionError ? (
+                <div className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-red-50 to-orange-50 border border-red-200/50 rounded-xl shadow-soft">
+                  <span className="text-xs font-medium bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+                    ⚠️ {getFallbackDescription()}
+                  </span>
+                  <button
+                    onClick={generateDescription}
+                    className="ml-2 p-1 hover:bg-red-100 rounded-full transition-colors"
+                    title="Retry AI analysis"
+                  >
+                    <svg className="w-3 h-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                </div>
               ) : aiDescription ? (
                 <div className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200/50 rounded-xl shadow-soft">
                   <span className="text-xs font-medium bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                     🤖 {aiDescription}
                   </span>
+                  <button
+                    onClick={generateDescription}
+                    className="ml-2 p-1 hover:bg-purple-100 rounded-full transition-colors"
+                    title="Refresh AI analysis"
+                  >
+                    <svg className="w-3 h-3 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
                 </div>
               ) : null}
             </div>
