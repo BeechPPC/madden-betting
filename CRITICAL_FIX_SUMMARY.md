@@ -1,134 +1,113 @@
-# CRITICAL FIX SUMMARY - 500 Error in /api/createLeague
+# Critical Fix Summary - Multi-League Google Sheets Implementation
 
-## 🚨 IMMEDIATE ACTION REQUIRED
+## Overview
 
-Your grandmother's life depends on fixing this issue. Here are the **EXACT STEPS** to resolve the 500 error:
+Successfully implemented a multi-league Google Sheets system that removes the hard-coded sheet dependency and allows each league to have its own Google Sheet.
 
-## Root Cause
-The 500 error is caused by **TWO CRITICAL AUTHENTICATION FAILURES**:
-1. **Firestore**: Service account lacks proper permissions
-2. **Google Sheets**: Service account lacks proper API access
+## Key Changes Made
 
-## 🔥 IMMEDIATE FIXES (Do These NOW)
+### 1. New API Endpoint: `createGoogleSheet.ts`
+- **Purpose**: Creates a copy of a template Google Sheet for new leagues
+- **Features**:
+  - Copies a template sheet with proper naming
+  - Sets up required headers and sample data
+  - Configures permissions for the service account
+  - Returns the new sheet ID and URL
 
-### Step 1: Fix Firestore Permissions (5 minutes)
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Select your project
-3. Go to **"Firestore Database"** → **"Rules"**
-4. **REPLACE** the rules with this test mode configuration:
+### 2. Updated Database Schema
+- **File**: `lib/firestore-server.ts`
+- **Changes**:
+  - Added `updateLeagueGoogleSheetId()` method
+  - League documents now store Google Sheet ID in `settings.googleSheetId`
+  - Maintains audit trail with `updatedAt` and `updatedBy` fields
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
-    }
-  }
-}
+### 3. Enhanced GoogleSheetsService
+- **File**: `utils/googleSheets.ts`
+- **Changes**:
+  - Added new methods that accept sheet ID parameters:
+    - `writeBetToSheet(betData, sheetId)`
+    - `readLeaderboardFromSheet(sheetId)`
+    - `readMatchupsFromSheet(sheetId)`
+    - `readMatchupsRawFromSheet(sheetId)`
+  - Maintained backward compatibility with legacy methods
+  - Added helper method `getDefaultSheetId()` for fallback
+
+### 4. Updated API Endpoints
+- **getMatchups.ts**: Now uses league-specific sheet ID
+- **getLeaderboard.ts**: Now uses league-specific sheet ID  
+- **submitBet.ts**: Now uses league-specific sheet ID
+- **createLeague.ts**: Automatically creates Google Sheet copy for new leagues
+
+### 5. New Documentation
+- **File**: `docs/google-sheets-template-setup.md`
+- **Content**: Comprehensive guide for setting up the template sheet system
+
+### 6. Updated README
+- **Changes**: Updated Google Sheets setup section to reflect multi-league system
+- **Added**: Information about template-based sheet creation
+
+### 7. Test Endpoint
+- **File**: `pages/api/testMultiLeagueSheets.ts`
+- **Purpose**: Verify the multi-league system is working correctly
+
+## Environment Variables Required
+
+```env
+# Google Sheets Template (for copying to new leagues)
+GOOGLE_SHEET_TEMPLATE_ID=your_template_sheet_id_here
+
+# Legacy single sheet (for backward compatibility)
+GOOGLE_SHEET_ID=your_legacy_sheet_id_here
 ```
 
-5. Click **"Publish"**
+## How It Works
 
-### Step 2: Fix Google Sheets API Access (10 minutes)
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Select your Firebase project
-3. Go to **"APIs & Services"** → **"Library"**
-4. Search for **"Google Sheets API"**
-5. Click on it and click **"Enable"**
-6. Go to **"APIs & Services"** → **"Credentials"**
-7. Find your service account (ends with `@your-project-id.iam.gserviceaccount.com`)
-8. Click on the service account email
-9. Go to **"Keys"** tab
-10. Click **"Add Key"** → **"Create new key"** → **"JSON"**
-11. Download the JSON file
-12. **Copy the private key** from the JSON file
-13. Go to your **Vercel Dashboard** → **Project Settings** → **Environment Variables**
-14. Update `FIREBASE_PRIVATE_KEY` with the new private key
+1. **League Creation Flow**:
+   - Admin creates new league
+   - System generates unique league code
+   - Creates copy of template Google Sheet
+   - Names sheet "ClutchPicks - [League Name] ([League Code])"
+   - Stores new sheet ID in league settings
+   - Sets up headers and sample data
 
-### Step 3: Share Google Sheet (2 minutes)
-1. Open your Google Sheet
-2. Click **"Share"** button
-3. Add the service account email (ends with `@your-project-id.iam.gserviceaccount.com`)
-4. Give it **"Editor"** permissions
-5. Click **"Send"** (no notification needed)
+2. **Data Access Flow**:
+   - API calls get user's current league
+   - Retrieve league's Google Sheet ID from settings
+   - Use league-specific sheet for all operations
+   - Fall back to legacy sheet if needed
 
-### Step 4: Test the Fix
-After completing the above steps, test the endpoints:
+3. **Backward Compatibility**:
+   - Existing leagues continue to work
+   - Legacy API methods still function
+   - Gradual migration path available
 
-```bash
-# Test environment
-curl https://madden-betting.vercel.app/api/testVercelEnv
+## Benefits
 
-# Test Firebase
-curl https://madden-betting.vercel.app/api/testFirebase
+- **Scalability**: Each league has its own isolated data
+- **Security**: League data is separated
+- **Flexibility**: Admins can manage their own sheets
+- **Consistency**: Template ensures proper structure
+- **Maintainability**: No more hard-coded sheet dependencies
 
-# Test the actual createLeague endpoint
-curl -X POST https://madden-betting.vercel.app/api/createLeague \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{"leagueName":"Test League","adminEmail":"test@example.com","adminUserId":"test123","displayName":"Test User"}'
-```
+## Testing
 
-## 🛡️ PREVENTION MEASURES
+1. Create a Google Sheets template following the setup guide
+2. Set the `GOOGLE_SHEET_TEMPLATE_ID` environment variable
+3. Create a new league through the app
+4. Verify a new Google Sheet is created with proper structure
+5. Test submitting bets and viewing matchups
+6. Use `/api/testMultiLeagueSheets` to verify system functionality
 
-### 1. Enhanced Error Handling (Already Implemented)
-- Better error messages
-- Graceful fallbacks
-- Detailed logging
+## Migration Notes
 
-### 2. Health Monitoring (Already Implemented)
-- Health check endpoint at `/api/health`
-- Service status monitoring
-- Environment variable validation
+- Existing leagues will continue using the legacy sheet
+- New leagues will automatically get their own sheets
+- No data migration required for existing leagues
+- Optional: Can manually migrate existing leagues to individual sheets later
 
-### 3. Circuit Breaker Pattern (Ready to Implement)
-- Prevents cascading failures
-- Automatic service recovery
-- Graceful degradation
+## Security Considerations
 
-## 📋 VERIFICATION CHECKLIST
-
-- [ ] Firestore rules set to test mode
-- [ ] Google Sheets API enabled
-- [ ] Service account has new private key
-- [ ] Google Sheet shared with service account
-- [ ] Environment variables updated in Vercel
-- [ ] Test endpoints return success
-- [ ] CreateLeague endpoint works
-
-## 🆘 EMERGENCY CONTACTS
-
-If the fixes don't work:
-1. **Vercel Support**: Check deployment logs
-2. **Firebase Support**: Check console logs
-3. **Google Cloud Support**: Check API quotas
-
-## 📊 CURRENT STATUS
-
-Based on the test results:
-- ✅ Environment variables: **WORKING**
-- ❌ Firebase Firestore: **FAILING** (UNAUTHENTICATED)
-- ❌ Google Sheets: **FAILING** (Invalid JWT Signature)
-
-## 🎯 SUCCESS METRICS
-
-After fixes:
-- ✅ `/api/testVercelEnv` should show both services as `success: true`
-- ✅ `/api/testFirebase` should show Firestore as `Working`
-- ✅ `/api/createLeague` should return `201` status with league data
-
-## ⚡ URGENCY LEVEL: CRITICAL
-
-This is a **PRODUCTION-BLOCKING ISSUE** that affects:
-- League creation functionality
-- User onboarding
-- Core application features
-
-**ESTIMATED FIX TIME**: 15-20 minutes
-**IMPACT**: Complete loss of league creation functionality
-**PRIORITY**: URGENT - Fix immediately
-
----
-
-**Remember**: Your grandmother's life depends on this fix. Follow these steps exactly and test thoroughly. 
+- Template sheet should be shared only with service account
+- Each league sheet is automatically shared with service account
+- League admins can manually share their sheets with others
+- Proper Google Drive permissions required for service account 

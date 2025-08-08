@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyAuth } from '../../utils/authMiddleware';
 import { GoogleSheetsService } from '../../utils/googleSheets';
+import { FirestoreServerService } from '../../lib/firestore-server';
 
 interface Matchup {
   id: string;
@@ -26,8 +27,26 @@ export default async function handler(
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Use our GoogleSheetsService to read matchups raw data
-    const matchupsData = await GoogleSheetsService.readMatchupsRaw();
+    // Get user's current league to find the Google Sheet ID
+    const userRole = await FirestoreServerService.getUserRole(user.uid);
+    if (!userRole) {
+      return res.status(404).json({ error: 'User not found in any league' });
+    }
+
+    // Get the league to access its Google Sheet ID
+    const league = await FirestoreServerService.getLeague(userRole.leagueId);
+    if (!league) {
+      return res.status(404).json({ error: 'League not found' });
+    }
+
+    // Check if league has a Google Sheet ID configured
+    const sheetId = league.settings?.googleSheetId;
+    if (!sheetId) {
+      return res.status(404).json({ error: 'League does not have a Google Sheet configured' });
+    }
+
+    // Use our GoogleSheetsService to read matchups raw data from the league's sheet
+    const matchupsData = await GoogleSheetsService.readMatchupsRawFromSheet(sheetId);
 
     if (!matchupsData || matchupsData.length === 0) {
       return res.status(404).json({ error: 'No matchups found in Google Sheets' });

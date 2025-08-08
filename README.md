@@ -105,7 +105,10 @@ FIREBASE_CLIENT_EMAIL=your_service_account_email@your_project.iam.gserviceaccoun
 FIREBASE_PRIVATE_KEY=your_private_key_here
 
 # Google Sheets API Configuration
-GOOGLE_SHEET_ID=your_google_sheet_id_here
+# Template sheet for creating new league sheets
+GOOGLE_SHEET_TEMPLATE_ID=your_template_sheet_id_here
+# Legacy single sheet (for backward compatibility)
+GOOGLE_SHEET_ID=your_legacy_sheet_id_here
 GOOGLE_SHEET_RANGE=Sheet1!A2:E
 GOOGLE_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"your_project_id","private_key_id":"your_private_key_id","private_key":"-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n","client_email":"your_service_account_email@your_project.iam.gserviceaccount.com","client_id":"your_client_id","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_x509_cert_url":"https://www.googleapis.com/robot/v1/metadata/x509/your_service_account_email%40your_project.iam.gserviceaccount.com"}
 
@@ -120,20 +123,20 @@ Follow the detailed setup guide in [docs/firebase-setup.md](docs/firebase-setup.
 
 ### 4. Google Sheets Setup
 
-1. Create a Google Sheet with the following columns:
-   - A: Week
-   - B: Team1
-   - C: Team1_Record
-   - D: Team2
-   - E: Team2_Record
+The app now supports multiple leagues, each with their own Google Sheet. Follow the detailed setup guide in [docs/google-sheets-template-setup.md](docs/google-sheets-template-setup.md) to configure the template sheet.
 
-2. Set up Google Sheets API:
-   - Go to [Google Cloud Console](https://console.cloud.google.com/)
-   - Create a new project or select existing one
-   - Enable Google Sheets API
-   - Create a Service Account
-   - Download the JSON key file
-   - Share your Google Sheet with the service account email
+**Quick Setup:**
+1. Create a Google Sheet template with the required tabs (Matchups, Bets, Leaderboard, Results)
+2. Set up Google Sheets API and Drive API in Google Cloud Console
+3. Create a Service Account with appropriate permissions
+4. Share the template sheet with the service account
+5. Add the template sheet ID to your environment variables
+
+**Key Features:**
+- Each league gets its own Google Sheet automatically
+- Template-based sheet creation ensures consistency
+- Backward compatibility with existing single-sheet setup
+- Automatic sheet setup with headers and sample data
 
 ### 5. Supabase Setup
 

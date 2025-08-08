@@ -222,6 +222,23 @@ export class FirestoreServerService {
     }
   }
 
+  static async updateLeagueGoogleSheetId(leagueId: string, googleSheetId: string, updatedBy: string): Promise<void> {
+    try {
+      initializeFirebaseAdmin();
+      
+      const leagueRef = db.collection('leagues').doc(leagueId);
+      await leagueRef.update({
+        'settings.googleSheetId': googleSheetId,
+        'settings.updatedAt': admin.firestore.Timestamp.now(),
+        'settings.updatedBy': updatedBy,
+      });
+      console.log(`Updated Google Sheet ID for league ${leagueId}: ${googleSheetId}`);
+    } catch (error) {
+      console.error('Error updating league Google Sheet ID:', error);
+      throw new Error(`Failed to update league Google Sheet ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   // User role operations
   static async createUserRole(userRoleData: Omit<UserRoleDocument, 'id' | 'joinedAt'>): Promise<UserRoleDocument> {
     try {

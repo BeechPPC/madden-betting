@@ -1,5 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleSheetsService } from '../../utils/googleSheets';
+import { FirestoreServerService } from '../../lib/firestore-server';
+import { verifyAuth } from '../../utils/authMiddleware';
 import { google } from 'googleapis';
 
 // Initialize Google Sheets API
@@ -31,10 +33,34 @@ export default async function handler(
   }
 
   try {
+    // Verify user authentication
+    const user = await verifyAuth(req);
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Get user's current league to find the Google Sheet ID
+    const userRole = await FirestoreServerService.getUserRole(user.uid);
+    if (!userRole) {
+      return res.status(404).json({ error: 'User not found in any league' });
+    }
+
+    // Get the league to access its Google Sheet ID
+    const league = await FirestoreServerService.getLeague(userRole.leagueId);
+    if (!league) {
+      return res.status(404).json({ error: 'League not found' });
+    }
+
+    // Check if league has a Google Sheet ID configured
+    const sheetId = league.settings?.googleSheetId;
+    if (!sheetId) {
+      return res.status(404).json({ error: 'League does not have a Google Sheet configured' });
+    }
+
     // Get all bets and results to calculate real-time leaderboard
     const [allBets, results] = await Promise.all([
-      getAllBets(),
-      getResults()
+      getAllBets(sheetId),
+      getResults(sheetId)
     ]);
 
     // Calculate user statistics based on actual bet results
@@ -94,10 +120,10 @@ export default async function handler(
   }
 }
 
-async function getAllBets(): Promise<any[]> {
+async function getAllBets(sheetId: string): Promise<any[]> {
   try {
     const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
+      spreadsheetId: sheetId,
       range: 'Bets!A:E',
     });
 
@@ -114,10 +140,10 @@ async function getAllBets(): Promise<any[]> {
   }
 }
 
-async function getResults(): Promise<any[]> {
+async function getResults(sheetId: string): Promise<any[]> {
   try {
     const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
+      spreadsheetId: sheetId,
       range: 'Results!A:F',
     });
 

@@ -122,14 +122,19 @@ if (!process.env.GOOGLE_SHEET_ID) {
 }
 
 export class GoogleSheetsService {
-  static async writeBet(betData: BetData): Promise<void> {
+  // Helper method to get the default sheet ID or throw error
+  private static getDefaultSheetId(): string {
+    const sheetId = process.env.GOOGLE_SHEET_ID;
+    if (!sheetId) {
+      throw new Error('GOOGLE_SHEET_ID environment variable is not set');
+    }
+    return sheetId;
+  }
+
+  // New method that accepts a specific sheet ID
+  static async writeBetToSheet(betData: BetData, sheetId: string): Promise<void> {
     try {
       const { sheets } = initializeGoogleSheets();
-      const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
-      
-      if (!SPREADSHEET_ID) {
-        throw new Error('GOOGLE_SHEET_ID environment variable is not set');
-      }
 
       const values = [
         [
@@ -142,13 +147,13 @@ export class GoogleSheetsService {
       ];
 
       console.log('Writing bet to Google Sheets:', {
-        spreadsheetId: SPREADSHEET_ID,
+        spreadsheetId: sheetId,
         range: 'Bets!A:E',
         values: values[0]
       });
 
       const response = await sheets.spreadsheets.values.append({
-        spreadsheetId: SPREADSHEET_ID,
+        spreadsheetId: sheetId,
         range: 'Bets!A:E',
         valueInputOption: 'RAW',
         requestBody: { values },
@@ -164,17 +169,18 @@ export class GoogleSheetsService {
     }
   }
 
-  static async readLeaderboard(): Promise<LeaderboardEntry[]> {
+  // Legacy method for backward compatibility
+  static async writeBet(betData: BetData): Promise<void> {
+    const sheetId = this.getDefaultSheetId();
+    return this.writeBetToSheet(betData, sheetId);
+  }
+
+  static async readLeaderboardFromSheet(sheetId: string): Promise<LeaderboardEntry[]> {
     try {
       const { sheets } = initializeGoogleSheets();
-      const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
-      
-      if (!SPREADSHEET_ID) {
-        throw new Error('GOOGLE_SHEET_ID environment variable is not set');
-      }
       
       const response = await sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
+        spreadsheetId: sheetId,
         range: 'Leaderboard!A:C',
       });
 
@@ -191,17 +197,18 @@ export class GoogleSheetsService {
     }
   }
 
-  static async readMatchups(): Promise<MatchupData[]> {
+  // Legacy method for backward compatibility
+  static async readLeaderboard(): Promise<LeaderboardEntry[]> {
+    const sheetId = this.getDefaultSheetId();
+    return this.readLeaderboardFromSheet(sheetId);
+  }
+
+  static async readMatchupsFromSheet(sheetId: string): Promise<MatchupData[]> {
     try {
       const { sheets } = initializeGoogleSheets();
-      const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
-      
-      if (!SPREADSHEET_ID) {
-        throw new Error('GOOGLE_SHEET_ID environment variable is not set');
-      }
       
       const response = await sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
+        spreadsheetId: sheetId,
         range: 'Matchups!A:E',
       });
 
@@ -218,17 +225,18 @@ export class GoogleSheetsService {
     }
   }
 
-  static async readMatchupsRaw(): Promise<any[][]> {
+  // Legacy method for backward compatibility
+  static async readMatchups(): Promise<MatchupData[]> {
+    const sheetId = this.getDefaultSheetId();
+    return this.readMatchupsFromSheet(sheetId);
+  }
+
+  static async readMatchupsRawFromSheet(sheetId: string): Promise<any[][]> {
     try {
       const { sheets } = initializeGoogleSheets();
-      const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
-      
-      if (!SPREADSHEET_ID) {
-        throw new Error('GOOGLE_SHEET_ID environment variable is not set');
-      }
       
       const response = await sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
+        spreadsheetId: sheetId,
         range: 'Matchups!A:E', // Include all columns for week, team1, team1_record, team2, team2_record
       });
 
@@ -238,6 +246,12 @@ export class GoogleSheetsService {
       console.error('Error reading matchups from Google Sheets:', error);
       throw new Error('Failed to read matchups from Google Sheets');
     }
+  }
+
+  // Legacy method for backward compatibility
+  static async readMatchupsRaw(): Promise<any[][]> {
+    const sheetId = this.getDefaultSheetId();
+    return this.readMatchupsRawFromSheet(sheetId);
   }
 
   static async updateLeaderboard(leaderboard: LeaderboardEntry[]): Promise<void> {

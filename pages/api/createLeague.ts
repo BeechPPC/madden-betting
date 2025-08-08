@@ -132,6 +132,41 @@ export default async function handler(
 
       console.log('Legacy user role created in Firestore successfully:', userRole.id);
 
+      // Create Google Sheet copy for the new league
+      try {
+        console.log('Creating Google Sheet copy for new league...');
+        const sheetResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/createGoogleSheet`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': req.headers.authorization || '',
+          },
+          body: JSON.stringify({
+            leagueName: leagueName,
+            leagueCode: leagueCode,
+          }),
+        });
+
+        if (sheetResponse.ok) {
+          const sheetData = await sheetResponse.json();
+          console.log('Google Sheet created successfully:', sheetData.sheetId);
+          
+          // Update the league with the Google Sheet ID
+          await FirestoreServerService.updateLeagueGoogleSheetId(
+            league.id, 
+            sheetData.sheetId, 
+            adminEmail
+          );
+          console.log('League updated with Google Sheet ID');
+        } else {
+          console.error('Failed to create Google Sheet:', sheetResponse.status, sheetResponse.statusText);
+          // Don't fail the league creation if sheet creation fails
+        }
+      } catch (sheetError) {
+        console.error('Error creating Google Sheet:', sheetError);
+        // Don't fail the league creation if sheet creation fails
+      }
+
       return res.status(201).json({
         success: true,
         league: {
