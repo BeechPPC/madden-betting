@@ -1,9 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleSheetsService } from '../../utils/googleSheets';
+import { FirestoreServerService } from '../../lib/firestore-server';
 import { withAuth, AuthenticatedRequest } from '../../utils/authMiddleware';
 
-// Use the GoogleSheetsService instead of duplicating setup
-const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
+// Remove the global SPREADSHEET_ID - we'll get it from the league settings
+// const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 
 interface MarkWinnerRequest {
   matchup_id: string;
@@ -43,9 +44,29 @@ async function handler(
     console.log(`Marking winner for matchup ${matchup_id}: ${winning_team}`);
     console.log('Authenticated user:', req.user);
 
-    // 1. Get all bets for this matchup
-    console.log('Fetching all bets...');
-    const allBets = await GoogleSheetsService.readBets();
+    // Get the admin's current league to find the Google Sheet ID
+    const userRole = await FirestoreServerService.getUserRole(req.user!.uid);
+    if (!userRole) {
+      return res.status(404).json({ error: 'User not found in any league' });
+    }
+
+    // Get the league to access its Google Sheet ID
+    const league = await FirestoreServerService.getLeague(userRole.leagueId);
+    if (!league) {
+      return res.status(404).json({ error: 'League not found' });
+    }
+
+    // Check if league has a Google Sheet ID configured
+    const sheetId = league.settings?.googleSheetId;
+    if (!sheetId) {
+      return res.status(404).json({ error: 'League does not have a Google Sheet configured' });
+    }
+
+    console.log(`Using league-specific sheet ID: ${sheetId}`);
+
+    // 1. Get all bets for this matchup from the league-specific sheet
+    console.log('Fetching all bets from league sheet...');
+    const allBets = await getAllBets(sheetId);
     console.log(`Total bets found: ${allBets.length}`);
     
     const matchupBets = allBets.filter(bet => bet.matchup_id === matchup_id);
@@ -60,9 +81,9 @@ async function handler(
 
     console.log('User results:', userResults);
 
-    // 3. Get current leaderboard
-    console.log('Fetching current leaderboard...');
-    const currentLeaderboard = await GoogleSheetsService.readLeaderboard();
+    // 3. Get current leaderboard from the league-specific sheet
+    console.log('Fetching current leaderboard from league sheet...');
+    const currentLeaderboard = await GoogleSheetsService.readLeaderboardFromSheet(sheetId);
     console.log(`Current leaderboard entries: ${currentLeaderboard.length}`);
     const userStatsMap = new Map<string, UserStats>();
 
@@ -111,14 +132,14 @@ async function handler(
         return (b.wins + b.losses) - (a.wins + a.losses);
       });
 
-    // 6. Update the leaderboard in Google Sheets
-    console.log('Updating leaderboard in Google Sheets...');
-    await GoogleSheetsService.updateLeaderboard(updatedLeaderboard);
+    // 6. Update the leaderboard in the league-specific Google Sheets
+    console.log('Updating leaderboard in league Google Sheets...');
+    await GoogleSheetsService.updateLeaderboardFromSheet(updatedLeaderboard, sheetId);
     console.log('Leaderboard updated successfully');
 
-    // 7. Add the result to a Results sheet for tracking
+    // 7. Add the result to a Results sheet for tracking in the league-specific sheet
     console.log('Adding result to tracking sheet...');
-    await addResultToSheet(matchup_id, winning_team, userResults);
+    await addResultToSheet(matchup_id, winning_team, userResults, sheetId);
     console.log('Result tracking completed');
 
     console.log('Leaderboard updated successfully');
@@ -144,7 +165,41 @@ async function handler(
 
 export default withAuth(handler);
 
-async function addResultToSheet(matchup_id: string, winning_team: string, userResults: any[]) {
+// Helper function to get bets from a specific sheet
+async function getAllBets(sheetId: string): Promise<Bet[]> {
+  try {
+    const { google } = require('googleapis');
+    
+    // Initialize Google Sheets API
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: process.env.FIREBASE_CLIENT_EMAIL,
+        private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: 'Bets!A:E',
+    });
+
+    const rows = response.data.values || [];
+    return rows.slice(1).map((row: any[]) => ({
+      user_name: row[1] || '',
+      matchup_id: row[2] || '',
+      selected_team: row[3] || '',
+      created_at: row[4] || '',
+    }));
+  } catch (error) {
+    console.error('Error reading bets from Google Sheets:', error);
+    return [];
+  }
+}
+
+async function addResultToSheet(matchup_id: string, winning_team: string, userResults: any[], sheetId: string) {
   try {
     // Import googleapis to initialize sheets
     const { google } = require('googleapis');
@@ -172,7 +227,7 @@ async function addResultToSheet(matchup_id: string, winning_team: string, userRe
     ];
 
     await sheets.spreadsheets.values.append({
-      spreadsheetId: SPREADSHEET_ID,
+      spreadsheetId: sheetId,
       range: 'Results!A:F', // Assuming you have a Results sheet
       valueInputOption: 'RAW',
       requestBody: { values },

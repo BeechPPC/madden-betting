@@ -282,6 +282,33 @@ export class GoogleSheetsService {
     }
   }
 
+  static async updateLeaderboardFromSheet(leaderboard: LeaderboardEntry[], sheetId: string): Promise<void> {
+    try {
+      const { sheets } = initializeGoogleSheets();
+      
+      if (!sheetId) {
+        throw new Error('Sheet ID is required');
+      }
+      
+      const values = leaderboard.map(entry => [
+        entry.user_name,
+        entry.wins,
+        entry.losses,
+        entry.points
+      ]);
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: sheetId,
+        range: 'Leaderboard!A2:D',
+        valueInputOption: 'RAW',
+        requestBody: { values },
+      });
+    } catch (error) {
+      console.error('Error updating leaderboard in Google Sheets:', error);
+      throw new Error('Failed to update leaderboard in Google Sheets');
+    }
+  }
+
   // League operations
   static async writeLeague(leagueData: LeagueData): Promise<void> {
     try {
