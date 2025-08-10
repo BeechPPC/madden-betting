@@ -122,7 +122,7 @@ const LeagueSwitcher: React.FC<LeagueSwitcherProps> = ({ className = "" }) => {
               }}
             >
               <LucideIcons.Plus className="w-4 h-4" />
-              <span>Join New League</span>
+              <span>Create or Join New League</span>
             </button>
           </div>
         </div>

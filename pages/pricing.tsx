@@ -6,7 +6,7 @@ const PricingPage: React.FC = () => {
     <>
       <Head>
         <title>Pricing - Madden CFM Betting</title>
-        <meta name="description" content="Choose your plan for Madden CFM Betting - Free or Premium" />
+        <meta name="description" content="Simple pay per league pricing for Madden CFM Betting - Basic or Premium" />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -22,7 +22,7 @@ const PricingPage: React.FC = () => {
               <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              <span className="text-sm font-medium text-emerald-400">Choose Your Game Plan</span>
+              <span className="text-sm font-medium text-emerald-400">Simple Pay Per League</span>
             </div>
 
             <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent mb-6">
@@ -30,14 +30,13 @@ const PricingPage: React.FC = () => {
             </h1>
 
             <p className="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
-              Elevate your Madden CFM Betting experience with our cutting-edge platform. Choose the plan that matches your
-              winning strategy.
+              Pay once per league and unlock all premium features for that league forever. No monthly subscriptions.
             </p>
           </div>
 
           {/* Pricing Cards */}
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Free Plan */}
+            {/* Basic Plan */}
             <div className="relative bg-slate-800/50 border-slate-700/50 backdrop-blur-sm hover:bg-slate-800/70 transition-all duration-300 group rounded-xl border p-8">
               <div className="text-center pb-8">
                 <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-700/50 rounded-xl mb-4 group-hover:bg-slate-600/50 transition-colors">
@@ -45,12 +44,12 @@ const PricingPage: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-2">Free</h3>
+                <h3 className="text-2xl font-bold text-white mb-2">Basic</h3>
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-4xl font-bold text-white">$0</span>
-                  <span className="text-slate-400">/month</span>
+                  <span className="text-slate-400">/league</span>
                 </div>
-                <p className="text-slate-400 mt-2">Perfect for getting started</p>
+                <p className="text-slate-400 mt-2">Try out the platform with limited features</p>
               </div>
 
               <div className="space-y-4 mb-8">
@@ -61,7 +60,7 @@ const PricingPage: React.FC = () => {
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <span className="text-slate-300">Create or join 1 league</span>
+                    <span className="text-slate-300">Join up to 1 league</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-5 h-5 bg-emerald-500/20 rounded-full flex items-center justify-center">
@@ -69,7 +68,7 @@ const PricingPage: React.FC = () => {
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <span className="text-slate-300">Up to 10 members per league</span>
+                    <span className="text-slate-300">Basic betting features</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-5 h-5 bg-emerald-500/20 rounded-full flex items-center justify-center">
@@ -77,7 +76,7 @@ const PricingPage: React.FC = () => {
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <span className="text-slate-300">Basic matchup predictions</span>
+                    <span className="text-slate-300">Basic analytics</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-5 h-5 bg-emerald-500/20 rounded-full flex items-center justify-center">
@@ -93,21 +92,13 @@ const PricingPage: React.FC = () => {
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <span className="text-slate-300">Basic statistics</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 w-5 h-5 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                      <svg className="w-3 h-3 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <span className="text-slate-300">Email support</span>
+                    <span className="text-slate-300">Community support</span>
                   </div>
                 </div>
               </div>
 
               <button className="w-full bg-transparent border border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-300 rounded-lg px-4 py-2 font-medium">
-                Get Started Free
+                Start Free
               </button>
             </div>
 
@@ -132,21 +123,21 @@ const PricingPage: React.FC = () => {
                 <h3 className="text-2xl font-bold text-white mb-2">Premium</h3>
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
-                    $4.99usd
+                    $4.99
                   </span>
-                  <span className="text-slate-400">/one-time payment</span>
+                  <span className="text-slate-400">/league</span>
                 </div>
-                <p className="text-slate-400 mt-2">For serious league commissioners</p>
+                <p className="text-slate-400 mt-2">One-time payment unlocks all features for that league</p>
               </div>
 
               <div className="space-y-4 mb-8">
                 <div className="space-y-3">
-                  {/* Everything in Free */}
+                  {/* Everything in Basic */}
                   <div className="text-sm text-emerald-400 font-medium mb-2 flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
-                    Everything in Free, plus:
+                    Everything in Basic, plus:
                   </div>
 
                   <div className="flex items-center gap-3">
@@ -155,7 +146,7 @@ const PricingPage: React.FC = () => {
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <span className="text-slate-300">Unlimited leagues</span>
+                    <span className="text-slate-300">Unlimited leagues (pay per league)</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-5 h-5 bg-emerald-500/20 rounded-full flex items-center justify-center">
@@ -163,7 +154,7 @@ const PricingPage: React.FC = () => {
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <span className="text-slate-300">Up to 50 members per league</span>
+                    <span className="text-slate-300">AI-powered insights & predictions</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-5 h-5 bg-emerald-500/20 rounded-full flex items-center justify-center">
@@ -171,7 +162,7 @@ const PricingPage: React.FC = () => {
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <span className="text-slate-300">Advanced analytics & insights</span>
+                    <span className="text-slate-300">Real-time notifications</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-5 h-5 bg-emerald-500/20 rounded-full flex items-center justify-center">
@@ -179,15 +170,7 @@ const PricingPage: React.FC = () => {
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <span className="text-slate-300">Custom league themes</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 w-5 h-5 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                      <svg className="w-3 h-3 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <span className="text-slate-300">Export data & reports</span>
+                    <span className="text-slate-300">Advanced analytics & statistics</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-5 h-5 bg-emerald-500/20 rounded-full flex items-center justify-center">
@@ -203,13 +186,13 @@ const PricingPage: React.FC = () => {
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <span className="text-slate-300">Early access to new features</span>
+                    <span className="text-slate-300">All future features included</span>
                   </div>
                 </div>
               </div>
 
               <button className="w-full bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white font-medium transition-all duration-300 shadow-lg hover:shadow-emerald-500/25 rounded-lg px-4 py-2">
-                Start Premium Trial
+                Upgrade League
               </button>
             </div>
           </div>
@@ -223,30 +206,31 @@ const PricingPage: React.FC = () => {
             <div className="space-y-6">
               <div className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-white mb-2">
-                  Can I upgrade or downgrade my plan anytime?
+                  How does the pay per league model work?
                 </h3>
                 <p className="text-slate-400">
-                  Yes! You can upgrade to Premium at any time, and you can also downgrade back to Free. 
-                  Changes take effect immediately.
+                  You pay $4.99 once per league to unlock all premium features for that specific league. 
+                  The payment is one-time and covers that league forever.
                 </p>
               </div>
 
               <div className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-white mb-2">
-                  What happens to my data if I cancel Premium?
+                  Can I join multiple leagues?
                 </h3>
                 <p className="text-slate-400">
-                  Your data is always safe. If you cancel Premium, you&apos;ll keep access to your leagues 
-                  but with Free tier limitations (1 league, 10 members max).
+                  Yes! You can join unlimited leagues. Each league requires a separate $4.99 payment 
+                  to unlock premium features for that specific league.
                 </p>
               </div>
 
               <div className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-white mb-2">
-                  Is there a free trial for Premium?
+                  What happens if I leave a league?
                 </h3>
                 <p className="text-slate-400">
-                  Yes! You can try Premium features free for 7 days. No credit card required to start your trial.
+                  If you leave a league and rejoin later, you won&apos;t need to pay again. 
+                  Your premium access for that league is permanent.
                 </p>
               </div>
 
@@ -255,7 +239,8 @@ const PricingPage: React.FC = () => {
                   How do I get support?
                 </h3>
                 <p className="text-slate-400">
-                  Free users get email support, while Premium users get priority support with faster response times.
+                  Basic users get community support, while Premium league members get priority support 
+                  with faster response times.
                 </p>
               </div>
             </div>
@@ -267,11 +252,12 @@ const PricingPage: React.FC = () => {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-              <span className="text-sm">30-day money-back guarantee</span>
+              <span className="text-sm">One-time payment, no recurring fees</span>
             </div>
 
             <p className="text-slate-500 text-sm max-w-md mx-auto">
-              All plans include our core betting tools and 24/7 customer support. Upgrade or downgrade anytime.
+              All plans include our core betting tools and 24/7 customer support. 
+              Pay once per league and unlock premium features forever.
             </p>
           </div>
         </div>

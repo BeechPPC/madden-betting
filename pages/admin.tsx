@@ -94,25 +94,19 @@ export default function AdminPage() {
   };
 
   const handleSaveSettings = async () => {
-    if (!sheetId.trim()) {
+    if (!userRole || userRole.role !== 'admin') {
       setVerificationStatus('error');
-      setVerificationMessage('Please enter a Sheet ID first');
+      setVerificationMessage('Only admins can update league settings');
       return;
     }
 
-    console.log('=== FRONTEND USER ROLE DEBUG ===');
-    console.log('Current user:', user);
-    console.log('Current userRole:', userRole);
-    console.log('userRole type:', typeof userRole);
-    console.log('userRole.role:', userRole?.role);
-    console.log('userRole.role type:', typeof userRole?.role);
-    console.log('Is admin check:', userRole?.role === 'admin');
     console.log('Is admin check (string):', userRole?.role === 'admin' ? 'true' : 'false');
 
     setIsSaving(true);
     setVerificationMessage('Saving settings...');
 
     try {
+      console.log('Making API request to updateLeagueSettingsV2...');
       const response = await makeAuthenticatedRequest('/api/updateLeagueSettingsV2', {
         method: 'POST',
         headers: {
@@ -121,7 +115,11 @@ export default function AdminPage() {
         body: JSON.stringify({ sheetId: sheetId.trim() }),
       });
 
+      console.log('API response status:', response.status);
+      console.log('API response ok:', response.ok);
+
       const data = await response.json();
+      console.log('API response data:', data);
 
       if (response.ok) {
         setVerificationStatus('success');
@@ -131,6 +129,7 @@ export default function AdminPage() {
         setVerificationMessage(data.error || 'Failed to save settings');
       }
     } catch (error) {
+      console.error('Error in handleSaveSettings:', error);
       setVerificationStatus('error');
       setVerificationMessage('Network error. Please try again.');
     } finally {

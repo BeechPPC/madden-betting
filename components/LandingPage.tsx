@@ -228,22 +228,22 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 lg:px-6 relative">
           <div className="text-center space-y-6 mb-16 sm:mb-20">
             <Badge className="bg-emerald-600/20 text-emerald-400 border-emerald-600/40 text-sm px-4 py-2 rounded-full shadow-lg shadow-emerald-500/10">Pricing</Badge>
-            <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-white">Choose Your Game Plan</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-white">Simple Pay Per League</h2>
             <p className="text-lg sm:text-xl text-slate-300 max-w-4xl mx-auto leading-relaxed">
-              Start free and upgrade when you&apos;re ready to unlock the full potential of CFM betting.
+              Pay once per league and unlock all premium features for that league forever.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 max-w-5xl mx-auto">
-            {/* Free Plan */}
+            {/* Basic Plan */}
             <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-slate-700/50 relative backdrop-blur-sm shadow-xl shadow-black/20 hover:shadow-2xl hover:shadow-black/30 transition-all duration-500 hover:scale-105 group">
               <CardHeader className="text-center pb-8">
-                <CardTitle className="text-3xl text-white group-hover:text-slate-200 transition-colors duration-300">Free</CardTitle>
+                <CardTitle className="text-3xl text-white group-hover:text-slate-200 transition-colors duration-300">Join a League</CardTitle>
                 <div className="text-5xl font-bold text-white mt-6">
-                  $0<span className="text-xl text-slate-400">/month</span>
+                  Free<span className="text-xl text-slate-400"></span>
                 </div>
                 <CardDescription className="text-slate-300 mt-4 text-lg">
-                  Perfect for getting started with CFM betting
+                  Join as many leagues as you like
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -258,7 +258,7 @@ export default function LandingPage() {
                     <div className="p-1 bg-emerald-500/20 rounded-full mr-4">
                       <LucideIcons.Check className="h-5 w-5 text-emerald-400" />
                     </div>
-                    Join up to 3 leagues
+                    Join up to 1 league
                   </li>
                   <li className="flex items-center text-slate-300 group-hover:text-slate-200 transition-colors duration-300">
                     <div className="p-1 bg-emerald-500/20 rounded-full mr-4">
@@ -277,7 +277,7 @@ export default function LandingPage() {
                   className="w-full mt-8 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white py-4 text-lg rounded-xl shadow-lg transition-all duration-300 hover:scale-105"
                   onClick={handleCreateAccount}
                 >
-                  Get Started Free
+                  Join a League
                 </Button>
               </CardContent>
             </Card>
@@ -288,12 +288,12 @@ export default function LandingPage() {
                 <Badge className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-6 py-2 rounded-full shadow-lg shadow-emerald-500/25">Most Popular</Badge>
               </div>
               <CardHeader className="text-center pb-8 pt-8">
-                <CardTitle className="text-3xl text-white group-hover:text-emerald-200 transition-colors duration-300">Premium</CardTitle>
+                <CardTitle className="text-3xl text-white group-hover:text-emerald-200 transition-colors duration-300">Per League</CardTitle>
                 <div className="text-5xl font-bold text-white mt-6">
-                  $4.99usd<span className="text-xl text-slate-400">/one-time</span>
+                  $4.99<span className="text-xl text-slate-400">usd</span>
                 </div>
                 <CardDescription className="text-slate-300 mt-4 text-lg">
-                  Unlock the full power of advanced CFM tipping
+                  One-time payment unlocks all features for that league
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -302,19 +302,19 @@ export default function LandingPage() {
                     <div className="p-1 bg-emerald-500/20 rounded-full mr-4">
                       <LucideIcons.Check className="h-5 w-5 text-emerald-400" />
                     </div>
-                    All free features included
+                    Admin of league
                   </li>
                   <li className="flex items-center text-slate-300 group-hover:text-slate-200 transition-colors duration-300">
                     <div className="p-1 bg-emerald-500/20 rounded-full mr-4">
                       <LucideIcons.Check className="h-5 w-5 text-emerald-400" />
                     </div>
-                    Unlimited leagues
+                    Access to our Discord server
                   </li>
                   <li className="flex items-center text-slate-300 group-hover:text-slate-200 transition-colors duration-300">
                     <div className="p-1 bg-emerald-500/20 rounded-full mr-4">
                       <LucideIcons.Check className="h-5 w-5 text-emerald-400" />
                     </div>
-                    AI insights
+                    AI-powered insights & predictions
                   </li>
                   <li className="flex items-center text-slate-300 group-hover:text-slate-200 transition-colors duration-300">
                     <div className="p-1 bg-emerald-500/20 rounded-full mr-4">
@@ -339,7 +339,7 @@ export default function LandingPage() {
                   className="w-full mt-8 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white py-4 text-lg rounded-xl shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40"
                   onClick={handleCreateAccount}
                 >
-                  Upgrade to Premium
+                  Create a League
                 </Button>
               </CardContent>
             </Card>
