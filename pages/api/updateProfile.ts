@@ -23,7 +23,11 @@ export default async function handler(
     if (username !== undefined) {
       if (username === '') {
         // Allow clearing username
-        await FirestoreServerService.updateUserProfile(user.uid, { username: undefined });
+        await FirestoreServerService.updateUserProfile(user.uid, { 
+          username: undefined,
+          userEmail: user.email,
+          displayName: user.displayName || user.email?.split('@')[0] || 'User'
+        });
         return res.status(200).json({ 
           success: true, 
           message: 'Username cleared successfully' 
@@ -53,7 +57,9 @@ export default async function handler(
 
       // Update user profile with new username
       await FirestoreServerService.updateUserProfile(user.uid, { 
-        username: username.toLowerCase() 
+        username: username.toLowerCase(),
+        userEmail: user.email,
+        displayName: user.displayName || user.email?.split('@')[0] || 'User'
       });
 
       return res.status(200).json({ 

@@ -395,10 +395,32 @@ export class FirestoreServerService {
       initializeFirebaseAdmin();
       
       const userProfileRef = db.collection('userProfiles').doc(userId);
-      await userProfileRef.update({
-        ...updateData,
-        updatedAt: admin.firestore.Timestamp.now(),
-      });
+      
+      // Check if the document exists first
+      const docSnap = await userProfileRef.get();
+      
+      if (!docSnap.exists) {
+        // Create the document if it doesn't exist
+        console.log(`User profile document doesn't exist for ${userId}, creating new profile`);
+        await userProfileRef.set({
+          userId: userId,
+          userEmail: updateData.userEmail || '',
+          displayName: updateData.displayName || '',
+          preferences: {
+            theme: 'dark',
+            notifications: true,
+          },
+          createdAt: admin.firestore.Timestamp.now(),
+          updatedAt: admin.firestore.Timestamp.now(),
+          ...updateData,
+        });
+      } else {
+        // Update existing document
+        await userProfileRef.update({
+          ...updateData,
+          updatedAt: admin.firestore.Timestamp.now(),
+        });
+      }
     } catch (error) {
       console.error('Error updating user profile:', error);
       throw new Error(`Failed to update user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
