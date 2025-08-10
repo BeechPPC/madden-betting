@@ -10,7 +10,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 
 export default function ProfilePage() {
-  const { user, userProfile, currentMembership, userLeagues, loading } = useAuth();
+  const { user, userProfile, currentMembership, userLeagues, loading, refreshUserProfile } = useAuth();
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
@@ -116,8 +116,8 @@ export default function ProfilePage() {
       if (response.ok) {
         const data = await response.json();
         setMessage({ type: 'success', text: data.message });
-        // Refresh user data
-        window.location.reload();
+        // Refresh user profile data
+        await refreshUserProfile();
       } else {
         const errorData = await response.json();
         setMessage({ type: 'error', text: errorData.error });

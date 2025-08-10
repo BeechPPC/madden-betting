@@ -78,6 +78,7 @@ interface AuthContextType {
   joinLeague: (leagueCode: string) => Promise<void>;
   switchLeague: (leagueId: string) => Promise<void>;
   fetchUserLeagues: () => Promise<void>;
+  refreshUserProfile: () => Promise<void>;
   // Computed properties
   isAdmin: boolean;
   isPremium: boolean;
@@ -434,6 +435,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const refreshUserProfile = async (): Promise<void> => {
+    if (!user) return;
+    
+    try {
+      const response = await makeAuthenticatedRequest('/api/getUserLeagues');
+      if (response.ok) {
+        const data = await response.json();
+        setUserProfile(data.userProfile ? {
+          ...data.userProfile,
+          createdAt: new Date(data.userProfile.createdAt),
+          updatedAt: new Date(data.userProfile.updatedAt),
+        } : null);
+      }
+    } catch (error) {
+      console.error('Error refreshing user profile:', error);
+    }
+  };
+
   // Computed display name with username priority
   const displayName = userProfile?.username || user?.displayName || user?.email || 'Unknown User';
 
@@ -452,6 +471,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     joinLeague,
     switchLeague,
     fetchUserLeagues,
+    refreshUserProfile,
     isAdmin: currentMembership?.role === 'admin' || userRole?.role === 'admin',
     isPremium: currentLeague?.isPaid || false, // Use league payment status instead of user premium
     hasMultipleLeagues: userLeagues.length >= 1, // Changed from > 1 to >= 1 to allow joining additional leagues

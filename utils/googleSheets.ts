@@ -484,4 +484,62 @@ export class GoogleSheetsService {
       throw new Error('Failed to read bets from Google Sheets');
     }
   }
+
+  static async updateUserNameInSheet(oldUserName: string, newUserName: string, sheetId: string): Promise<void> {
+    try {
+      console.log(`Updating user name in sheet: ${oldUserName} -> ${newUserName}`);
+      
+      const { sheets } = initializeGoogleSheets();
+      
+      // Read all bets to find rows with the old user name
+      const response = await sheets.spreadsheets.values.get({
+        spreadsheetId: sheetId,
+        range: 'Bets!A:E',
+      });
+
+      const rows = response.data.values || [];
+      const updatedRows: any[][] = [];
+      let hasChanges = false;
+
+      // Process each row
+      rows.forEach((row: any[], index: number) => {
+        if (index === 0) {
+          // Keep header row as is
+          updatedRows.push(row);
+          return;
+        }
+
+        const userName = row[1]; // user_name is in column B (index 1)
+        if (userName === oldUserName) {
+          // Update the user name
+          const updatedRow = [...row];
+          updatedRow[1] = newUserName;
+          updatedRows.push(updatedRow);
+          hasChanges = true;
+          console.log(`Updated row ${index + 1}: ${oldUserName} -> ${newUserName}`);
+        } else {
+          // Keep row as is
+          updatedRows.push(row);
+        }
+      });
+
+      if (hasChanges) {
+        // Write back all rows
+        await sheets.spreadsheets.values.update({
+          spreadsheetId: sheetId,
+          range: 'Bets!A:E',
+          valueInputOption: 'RAW',
+          requestBody: {
+            values: updatedRows,
+          },
+        });
+        console.log(`Successfully updated user name from ${oldUserName} to ${newUserName} in ${sheetId}`);
+      } else {
+        console.log(`No rows found with user name ${oldUserName} in sheet ${sheetId}`);
+      }
+    } catch (error) {
+      console.error('Error updating user name in Google Sheets:', error);
+      throw new Error(`Failed to update user name in Google Sheets: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 } 

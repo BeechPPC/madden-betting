@@ -28,6 +28,14 @@ export default async function handler(
           userEmail: user.email,
           displayName: user.displayName || user.email?.split('@')[0] || 'User'
         });
+
+        // Update user's display name in their league membership to use email fallback
+        const userRole = await FirestoreServerService.getUserRole(user.uid);
+        if (userRole) {
+          const fallbackDisplayName = user.displayName || user.email?.split('@')[0] || 'User';
+          await FirestoreServerService.updateUserLeagueMembershipDisplayName(user.uid, userRole.leagueId, fallbackDisplayName);
+        }
+
         return res.status(200).json({ 
           success: true, 
           message: 'Username cleared successfully' 
@@ -55,12 +63,36 @@ export default async function handler(
         });
       }
 
+      // Get current user profile to get old username
+      const currentProfile = await FirestoreServerService.getUserProfile(user.uid);
+      const oldUsername = currentProfile?.username;
+
       // Update user profile with new username
       await FirestoreServerService.updateUserProfile(user.uid, { 
         username: username.toLowerCase(),
         userEmail: user.email,
         displayName: user.displayName || user.email?.split('@')[0] || 'User'
       });
+
+      // Update user's display name in their league membership
+      const userRole = await FirestoreServerService.getUserRole(user.uid);
+      if (userRole) {
+        await FirestoreServerService.updateUserLeagueMembershipDisplayName(user.uid, userRole.leagueId, username.toLowerCase());
+      }
+
+      // Update username in Google Sheets if there was an old username
+      if (oldUsername && oldUsername !== username.toLowerCase()) {
+        const league = await FirestoreServerService.getLeague(userRole.leagueId);
+        if (league?.settings?.googleSheetId) {
+          try {
+            const { GoogleSheetsService } = await import('../../utils/googleSheets');
+            await GoogleSheetsService.updateUserNameInSheet(oldUsername, username.toLowerCase(), league.settings.googleSheetId);
+          } catch (error) {
+            console.error('Error updating username in Google Sheets:', error);
+            // Don't fail the request if Google Sheets update fails
+          }
+        }
+      }
 
       return res.status(200).json({ 
         success: true, 

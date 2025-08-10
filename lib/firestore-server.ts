@@ -532,6 +532,23 @@ export class FirestoreServerService {
     }
   }
 
+  static async updateUserLeagueMembershipDisplayName(userId: string, leagueId: string, displayName: string): Promise<void> {
+    try {
+      initializeFirebaseAdmin();
+      
+      const membership = await this.getUserLeagueMembership(userId, leagueId);
+      if (membership) {
+        const membershipRef = db.collection('userLeagueMemberships').doc(membership.id);
+        await membershipRef.update({
+          displayName: displayName,
+        });
+      }
+    } catch (error) {
+      console.error('Error updating user league membership display name:', error);
+      throw new Error(`Failed to update user league membership display name: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   static async deactivateMembership(userId: string, leagueId: string): Promise<void> {
     try {
       initializeFirebaseAdmin();
