@@ -10,16 +10,24 @@ import { useAuth } from "../contexts/AuthContext"
 import { useRouter } from "next/router"
 
 export default function LandingPage() {
-  const { signIn } = useAuth()
+  const { signIn, signInExisting } = useAuth()
   const router = useRouter()
 
-  const handleSignIn = () => {
-    router.push('/login')
+  const handleSignIn = async () => {
+    try {
+      await signInExisting()
+      // After successful sign in, redirect to index page where their leagues are
+      router.push('/')
+    } catch (error) {
+      console.error('Error signing in:', error)
+    }
   }
 
   const handleCreateAccount = async () => {
     try {
       await signIn()
+      // After successful sign in, redirect to role selection page
+      router.push('/role-selection')
     } catch (error) {
       console.error('Error creating account:', error)
     }
@@ -57,7 +65,7 @@ export default function LandingPage() {
               className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white text-sm px-6 py-2 rounded-lg shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40"
               onClick={handleCreateAccount}
             >
-              Create Account
+              Join or Create League
             </Button>
           </div>
         </div>
@@ -89,14 +97,12 @@ export default function LandingPage() {
                   className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white px-8 py-4 text-lg rounded-xl shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40"
                   onClick={handleCreateAccount}
                 >
-                  Create League Now
+                  Join or Create League
                 </Button>
                 <Button
                   variant="outline"
                   className="border-slate-600 text-slate-300 hover:bg-slate-800/50 bg-slate-900/50 backdrop-blur-sm px-8 py-4 text-lg rounded-xl transition-all duration-300 hover:scale-105 hover:border-emerald-500/50"
-                  onClick={() => {
-                    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
-                  }}
+                  onClick={handleSignIn}
                 >
                   Sign In
                 </Button>

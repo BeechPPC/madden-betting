@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
-import RoleSelection from './RoleSelection';
 
 const Login: React.FC = () => {
+  const router = useRouter();
   const { signIn, user, userRole, loading } = useAuth();
   const [error, setError] = useState<string>('');
   const [isSigningIn, setIsSigningIn] = useState(false);
@@ -20,9 +21,15 @@ const Login: React.FC = () => {
     }
   };
 
-  // If user is authenticated but doesn't have a role yet, show role selection
+  // Redirect to role selection if user is authenticated but doesn't have a role
+  useEffect(() => {
+    if (user && !userRole && !loading) {
+      router.push('/role-selection');
+    }
+  }, [user, userRole, loading, router]);
+
   if (user && !userRole && !loading) {
-    return <RoleSelection />;
+    return null; // Return null while redirecting
   }
 
   // If user is authenticated and has a role, they should be redirected to the main app

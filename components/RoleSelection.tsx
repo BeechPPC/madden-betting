@@ -30,11 +30,13 @@ const RoleSelection: React.FC = () => {
   const handleSignOut = useCallback(async () => {
     try {
       await signOut();
+      // Redirect to landing page after successful sign out
+      router.push('/');
     } catch (error) {
       console.error('Failed to sign out:', error);
       setError('Failed to sign out. Please try again.');
     }
-  }, [signOut]);
+  }, [signOut, router]);
 
   const handleCreateLeague = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,13 +161,13 @@ const RoleSelection: React.FC = () => {
                 <div className="absolute inset-0 bg-red-400/20 rounded-full blur-md"></div>
               </div>
               <div className="space-y-4">
-                <h1 className="text-2xl font-bold text-white">Authentication Error</h1>
-                <p className="text-slate-300">Please sign in to continue.</p>
+                <h1 className="text-2xl font-bold text-white">Authentication Required</h1>
+                <p className="text-slate-300">Please sign in to access this page.</p>
                 <Button
-                  onClick={handleSignOut}
+                  onClick={() => router.push('/')}
                   className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white px-8 py-3 rounded-xl shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:scale-105"
                 >
-                  Sign In
+                  Go to Home
                 </Button>
               </div>
             </CardContent>

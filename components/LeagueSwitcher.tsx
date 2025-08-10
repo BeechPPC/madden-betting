@@ -117,8 +117,8 @@ const LeagueSwitcher: React.FC<LeagueSwitcherProps> = ({ className = "" }) => {
               className="w-full text-left px-3 py-2 hover:bg-slate-700 text-emerald-400 text-sm flex items-center space-x-2"
               onClick={() => {
                 setIsOpen(false);
-                // Navigate to join league page or open join modal
-                window.location.href = '/';
+                // Navigate to role selection page
+                window.location.href = '/role-selection';
               }}
             >
               <LucideIcons.Plus className="w-4 h-4" />

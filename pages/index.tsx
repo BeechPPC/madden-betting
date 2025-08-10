@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import { makeAuthenticatedRequest } from '../utils/api';
 import { copyToClipboard } from '../lib/utils';
@@ -34,7 +35,8 @@ interface Bet {
 }
 
 export default function Home() {
-  const { user, userRole, currentLeague, loading, isPremium } = useAuth();
+  const router = useRouter();
+  const { user, currentLeague, userLeagues, currentMembership, loading, isPremium } = useAuth();
   const [matchups, setMatchups] = useState<Matchup[]>([]);
   const [selectedPicks, setSelectedPicks] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,10 +47,22 @@ export default function Home() {
   const [showCopyNotification, setShowCopyNotification] = useState(false);
 
   useEffect(() => {
-    if (user && userRole && !loading) {
+    // Use new multi-league system: check if user has any leagues or current membership
+    if (user && (currentMembership || userLeagues.length > 0) && !loading) {
       fetchMatchups();
     }
-  }, [user, userRole, loading]);
+  }, [user, currentMembership, userLeagues, loading]);
+
+  // Redirect to role selection if user is authenticated but doesn't have any leagues
+  useEffect(() => {
+    if (user && !currentMembership && userLeagues.length === 0 && !loading) {
+      console.log('User authenticated but no leagues, redirecting to role selection');
+      console.log('User:', user);
+      console.log('CurrentMembership:', currentMembership);
+      console.log('UserLeagues:', userLeagues);
+      router.push('/role-selection');
+    }
+  }, [user, currentMembership, userLeagues, loading, router]);
 
   const fetchMatchups = async () => {
     try {
@@ -143,12 +157,9 @@ export default function Home() {
     return <LandingPage />;
   }
 
-  // Show role selection if user is authenticated but doesn't have a role
-  if (user && !userRole) {
-    console.log('User authenticated but no role, showing RoleSelection');
-    console.log('User:', user);
-    console.log('UserRole:', userRole);
-    return <RoleSelection />;
+  // Show loading while redirecting to role selection
+  if (user && !currentMembership && userLeagues.length === 0) {
+    return null; // Return null while redirecting
   }
 
   return (
@@ -168,7 +179,7 @@ export default function Home() {
           </div>
           <div className="flex items-center space-x-3">
             <LeagueSwitcher />
-            {userRole?.role === 'admin' && (
+            {currentMembership?.role === 'admin' && (
               <Link
                 href="/admin"
                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -261,7 +272,7 @@ export default function Home() {
                       Welcome back, {user.displayName || user.email}
                     </span>
                     <p className="text-sm text-slate-300">
-                      {userRole?.role === 'admin' ? 'Ready to manage your league?' : 'Ready to make your picks?'}
+                      {currentMembership?.role === 'admin' ? 'Ready to manage your league?' : 'Ready to make your picks?'}
                     </p>
                   </div>
                 </div>
@@ -323,7 +334,7 @@ export default function Home() {
                         {currentWeek ? `No matchups have been set up for Week ${currentWeek} yet.` : 'No matchups are currently available.'}
                       </p>
                       <p className="text-sm text-slate-400">
-                        {userRole?.role === 'admin' 
+                        {currentMembership?.role === 'admin' 
                           ? 'Set up this week\'s matchups in the Admin Panel.'
                           : 'Check back later or contact the admin to set up this week\'s matchups.'
                         }

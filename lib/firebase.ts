@@ -28,10 +28,28 @@ export const db = getFirestore(app);
 // Google Auth Provider - create once to prevent memory leaks
 export const googleProvider = new GoogleAuthProvider();
 
-// Sign in with Google
+// Configure Google provider to force account selection
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
+
+// Sign in with Google (forces account selection)
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+  } catch (error) {
+    console.error('Error signing in with Google:', error);
+    throw error;
+  }
+};
+
+// Sign in with Google for existing users (doesn't force account selection)
+export const signInWithGoogleExisting = async () => {
+  try {
+    // Create a new provider instance that doesn't force account selection
+    const existingUserProvider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, existingUserProvider);
     return result.user;
   } catch (error) {
     console.error('Error signing in with Google:', error);

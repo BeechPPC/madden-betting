@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User } from 'firebase/auth';
-import { auth, signInWithGoogle, signOutUser, onAuthStateChange } from '../lib/firebase';
+import { auth, signInWithGoogle, signInWithGoogleExisting, signOutUser, onAuthStateChange } from '../lib/firebase';
 import { makeAuthenticatedRequest } from '../utils/api';
 
 // Legacy interface for backward compatibility
@@ -71,6 +71,7 @@ interface AuthContextType {
   currentMembership: UserLeagueMembership | null;
   // Methods
   signIn: () => Promise<void>;
+  signInExisting: () => Promise<void>;
   signOut: () => Promise<void>;
   createLeague: (leagueName: string) => Promise<League>;
   joinLeague: (leagueCode: string) => Promise<void>;
@@ -405,6 +406,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const signInExisting = async () => {
+    try {
+      if (!auth) {
+        throw new Error('Firebase is not properly configured. Please check your .env.local file.');
+      }
+      await signInWithGoogleExisting();
+    } catch (error) {
+      console.error('Error signing in existing user:', error);
+      throw error;
+    }
+  };
+
   const signOut = async () => {
     try {
       await signOutUser();
@@ -428,6 +441,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     userProfile,
     currentMembership,
     signIn,
+    signInExisting,
     signOut,
     createLeague,
     joinLeague,
