@@ -10,14 +10,21 @@ import { useAuth } from "../contexts/AuthContext"
 import { useRouter } from "next/router"
 
 export default function LandingPage() {
-  const { signIn, signInExisting } = useAuth()
+  const { signIn, signInExisting, loading } = useAuth()
   const router = useRouter()
 
   const handleSignIn = async () => {
     try {
+      console.log('=== SIGN IN CLICKED ===');
+      console.log('Starting sign in process...');
       await signInExisting()
-      // After successful sign in, redirect to index page where their leagues are
-      router.push('/')
+      console.log('Sign in successful, waiting before redirect...');
+      // Wait for AuthContext to finish loading user data before redirecting
+      // This prevents race conditions where redirect happens before leagues are loaded
+      setTimeout(() => {
+        console.log('Redirecting to index page...');
+        router.push('/')
+      }, 1000)
     } catch (error) {
       console.error('Error signing in:', error)
     }

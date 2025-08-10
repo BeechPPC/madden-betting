@@ -56,11 +56,19 @@ export default function Home() {
   // Redirect to role selection if user is authenticated but doesn't have any leagues
   useEffect(() => {
     if (user && !currentMembership && userLeagues.length === 0 && !loading) {
-      console.log('User authenticated but no leagues, redirecting to role selection');
-      console.log('User:', user);
+      console.log('=== REDIRECTING TO ROLE SELECTION ===');
+      console.log('User:', user.email);
       console.log('CurrentMembership:', currentMembership);
       console.log('UserLeagues:', userLeagues);
+      console.log('Loading:', loading);
+      console.log('User authenticated but no leagues, redirecting to role selection');
       router.push('/role-selection');
+    } else if (user && (currentMembership || userLeagues.length > 0) && !loading) {
+      console.log('=== USER HAS LEAGUES - STAYING ON DASHBOARD ===');
+      console.log('User:', user.email);
+      console.log('CurrentMembership:', currentMembership);
+      console.log('UserLeagues count:', userLeagues.length);
+      console.log('Loading:', loading);
     }
   }, [user, currentMembership, userLeagues, loading, router]);
 

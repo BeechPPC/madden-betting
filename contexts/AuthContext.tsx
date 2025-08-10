@@ -447,7 +447,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     joinLeague,
     switchLeague,
     fetchUserLeagues,
-    isAdmin: userRole?.role === 'admin',
+    isAdmin: currentMembership?.role === 'admin' || userRole?.role === 'admin',
     isPremium: currentLeague?.isPaid || false, // Use league payment status instead of user premium
     hasMultipleLeagues: userLeagues.length >= 1, // Changed from > 1 to >= 1 to allow joining additional leagues
   };

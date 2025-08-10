@@ -8,7 +8,7 @@ import { makeAuthenticatedRequest } from '../utils/api';
 import * as LucideIcons from "lucide-react";
 
 export default function AdminPage() {
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, currentMembership, userLeagues, loading } = useAuth();
   const [currentSection, setCurrentSection] = useState<'main' | 'setup'>('main');
   const [sheetId, setSheetId] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -33,13 +33,17 @@ export default function AdminPage() {
     return <Login />;
   }
 
-  // Show role selection if user is authenticated but doesn't have a role
-  if (user && !userRole) {
+  // Check if user has any leagues (using new multi-league system or legacy system)
+  const hasLeagues = currentMembership || userLeagues.length > 0 || userRole;
+  const isAdmin = currentMembership?.role === 'admin' || userRole?.role === 'admin';
+
+  // Show role selection if user is authenticated but doesn't have any leagues
+  if (user && !hasLeagues) {
     return <RoleSelection />;
   }
 
   // Check if user is admin
-  if (userRole?.role !== 'admin') {
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center">
@@ -94,13 +98,13 @@ export default function AdminPage() {
   };
 
   const handleSaveSettings = async () => {
-    if (!userRole || userRole.role !== 'admin') {
+    if (!isAdmin) {
       setVerificationStatus('error');
       setVerificationMessage('Only admins can update league settings');
       return;
     }
 
-    console.log('Is admin check (string):', userRole?.role === 'admin' ? 'true' : 'false');
+    console.log('Is admin check (string):', isAdmin ? 'true' : 'false');
 
     setIsSaving(true);
     setVerificationMessage('Saving settings...');

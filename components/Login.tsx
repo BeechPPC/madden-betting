@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const Login: React.FC = () => {
   const router = useRouter();
-  const { signIn, user, userRole, loading } = useAuth();
+  const { signIn, user, userRole, currentMembership, userLeagues, loading } = useAuth();
   const [error, setError] = useState<string>('');
   const [isSigningIn, setIsSigningIn] = useState(false);
 
@@ -21,19 +21,22 @@ const Login: React.FC = () => {
     }
   };
 
-  // Redirect to role selection if user is authenticated but doesn't have a role
+  // Check if user has any leagues (using new multi-league system or legacy system)
+  const hasLeagues = currentMembership || userLeagues.length > 0 || userRole;
+
+  // Redirect to role selection if user is authenticated but doesn't have any leagues
   useEffect(() => {
-    if (user && !userRole && !loading) {
+    if (user && !hasLeagues && !loading) {
       router.push('/role-selection');
     }
-  }, [user, userRole, loading, router]);
+  }, [user, hasLeagues, loading, router]);
 
-  if (user && !userRole && !loading) {
+  if (user && !hasLeagues && !loading) {
     return null; // Return null while redirecting
   }
 
-  // If user is authenticated and has a role, they should be redirected to the main app
-  if (user && userRole) {
+  // If user is authenticated and has leagues, they should be redirected to the main app
+  if (user && hasLeagues) {
     return null; // This will be handled by the main app routing
   }
 
