@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { makeAuthenticatedRequest } from '../utils/api';
 
 interface LeaderboardEntry {
   user_name: string;
@@ -20,7 +21,7 @@ const Leaderboard: React.FC = () => {
   const fetchLeaderboard = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/getLeaderboard');
+      const response = await makeAuthenticatedRequest('/api/getLeaderboard');
       const data = await response.json();
       
       if (response.ok) {
