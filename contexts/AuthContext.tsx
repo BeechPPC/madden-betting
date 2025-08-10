@@ -447,6 +447,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           createdAt: new Date(data.userProfile.createdAt),
           updatedAt: new Date(data.userProfile.updatedAt),
         } : null);
+        
+        // Also update currentMembership to ensure displayName updates
+        if (data.currentMembership) {
+          setCurrentMembership({
+            ...data.currentMembership,
+            joinedAt: new Date(data.currentMembership.joinedAt),
+            lastAccessedAt: new Date(data.currentMembership.lastAccessedAt),
+          });
+        }
+        
+        // Update userLeagues as well to ensure all memberships are current
+        if (data.memberships) {
+          setUserLeagues(data.memberships.map((membership: any) => ({
+            ...membership,
+            joinedAt: new Date(membership.joinedAt),
+            lastAccessedAt: new Date(membership.lastAccessedAt),
+          })));
+        }
       }
     } catch (error) {
       console.error('Error refreshing user profile:', error);
@@ -454,7 +472,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   // Computed display name with username priority
-  const displayName = userProfile?.username || user?.displayName || user?.email || 'Unknown User';
+  const displayName = userProfile?.username || currentMembership?.displayName || user?.displayName || user?.email || 'Unknown User';
 
   const value = {
     user,

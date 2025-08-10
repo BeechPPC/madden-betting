@@ -22,6 +22,10 @@ export default async function handler(
     // Validate username if provided
     if (username !== undefined) {
       if (username === '') {
+        // Get current user profile to get old username before clearing it
+        const currentProfile = await FirestoreServerService.getUserProfile(user.uid);
+        const oldUsername = currentProfile?.username;
+        
         // Allow clearing username
         await FirestoreServerService.updateUserProfile(user.uid, { 
           username: undefined,
@@ -34,6 +38,20 @@ export default async function handler(
         if (userRole) {
           const fallbackDisplayName = user.displayName || user.email?.split('@')[0] || 'User';
           await FirestoreServerService.updateUserLeagueMembershipDisplayName(user.uid, userRole.leagueId, fallbackDisplayName);
+          
+          // Update Google Sheets to use fallback name if there was a previous username
+          if (oldUsername) {
+            const league = await FirestoreServerService.getLeague(userRole.leagueId);
+            if (league?.settings?.googleSheetId) {
+              try {
+                const { GoogleSheetsService } = await import('../../utils/googleSheets');
+                await GoogleSheetsService.updateUserNameInSheet(oldUsername, fallbackDisplayName, league.settings.googleSheetId);
+              } catch (error) {
+                console.error('Error updating username in Google Sheets:', error);
+                // Don't fail the request if Google Sheets update fails
+              }
+            }
+          }
         }
 
         return res.status(200).json({ 
@@ -79,17 +97,23 @@ export default async function handler(
       if (userRole) {
         await FirestoreServerService.updateUserLeagueMembershipDisplayName(user.uid, userRole.leagueId, username.toLowerCase());
         
-        // Update username in Google Sheets if there was an old username
-        if (oldUsername && oldUsername !== username.toLowerCase()) {
-          const league = await FirestoreServerService.getLeague(userRole.leagueId);
-          if (league?.settings?.googleSheetId) {
-            try {
-              const { GoogleSheetsService } = await import('../../utils/googleSheets');
+        // Update username in Google Sheets if there was an old username or if this is the first time setting a username
+        const league = await FirestoreServerService.getLeague(userRole.leagueId);
+        if (league?.settings?.googleSheetId) {
+          try {
+            const { GoogleSheetsService } = await import('../../utils/googleSheets');
+            
+            // If there was an old username, update it in the sheet
+            if (oldUsername && oldUsername !== username.toLowerCase()) {
               await GoogleSheetsService.updateUserNameInSheet(oldUsername, username.toLowerCase(), league.settings.googleSheetId);
-            } catch (error) {
-              console.error('Error updating username in Google Sheets:', error);
-              // Don't fail the request if Google Sheets update fails
+            } else if (!oldUsername) {
+              // If this is the first time setting a username, update any existing bets with the user's email to use the new username
+              const fallbackName = user.displayName || user.email?.split('@')[0] || 'User';
+              await GoogleSheetsService.updateUserNameInSheet(fallbackName, username.toLowerCase(), league.settings.googleSheetId);
             }
+          } catch (error) {
+            console.error('Error updating username in Google Sheets:', error);
+            // Don't fail the request if Google Sheets update fails
           }
         }
       }
