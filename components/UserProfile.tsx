@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 
 const UserProfile: React.FC = () => {
@@ -52,7 +53,7 @@ const UserProfile: React.FC = () => {
             </div>
           </div>
           <div className="py-2">
-            <a
+            <Link
               href="/profile"
               className="w-full text-left px-6 py-3 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition-colors duration-200 font-medium flex items-center"
             >
@@ -60,7 +61,7 @@ const UserProfile: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               Profile Settings
-            </a>
+            </Link>
             <button
               onClick={handleSignOut}
               className="w-full text-left px-6 py-3 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition-colors duration-200 font-medium flex items-center"
