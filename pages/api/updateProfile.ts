@@ -74,22 +74,22 @@ export default async function handler(
         displayName: user.displayName || user.email?.split('@')[0] || 'User'
       });
 
-      // Update user's display name in their league membership
+      // Update user's display name in their league membership and Google Sheets
       const userRole = await FirestoreServerService.getUserRole(user.uid);
       if (userRole) {
         await FirestoreServerService.updateUserLeagueMembershipDisplayName(user.uid, userRole.leagueId, username.toLowerCase());
-      }
-
-      // Update username in Google Sheets if there was an old username
-      if (oldUsername && oldUsername !== username.toLowerCase()) {
-        const league = await FirestoreServerService.getLeague(userRole.leagueId);
-        if (league?.settings?.googleSheetId) {
-          try {
-            const { GoogleSheetsService } = await import('../../utils/googleSheets');
-            await GoogleSheetsService.updateUserNameInSheet(oldUsername, username.toLowerCase(), league.settings.googleSheetId);
-          } catch (error) {
-            console.error('Error updating username in Google Sheets:', error);
-            // Don't fail the request if Google Sheets update fails
+        
+        // Update username in Google Sheets if there was an old username
+        if (oldUsername && oldUsername !== username.toLowerCase()) {
+          const league = await FirestoreServerService.getLeague(userRole.leagueId);
+          if (league?.settings?.googleSheetId) {
+            try {
+              const { GoogleSheetsService } = await import('../../utils/googleSheets');
+              await GoogleSheetsService.updateUserNameInSheet(oldUsername, username.toLowerCase(), league.settings.googleSheetId);
+            } catch (error) {
+              console.error('Error updating username in Google Sheets:', error);
+              // Don't fail the request if Google Sheets update fails
+            }
           }
         }
       }
