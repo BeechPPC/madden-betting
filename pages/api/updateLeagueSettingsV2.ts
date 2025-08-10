@@ -98,7 +98,7 @@ export default async function handler(
         try {
           console.log('Attempting to create missing league for admin user');
           const newLeague = await FirestoreServerService.createLeague({
-            name: `League for ${user.displayName || user.email}`,
+            name: `League for ${user.displayName || user.email}`, // This will be updated by the client
             adminUserId: user.uid,
             adminEmail: user.email || '',
             isActive: true,

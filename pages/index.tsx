@@ -36,7 +36,7 @@ interface Bet {
 
 export default function Home() {
   const router = useRouter();
-  const { user, currentLeague, userLeagues, currentMembership, loading, isPremium } = useAuth();
+  const { user, currentLeague, userLeagues, currentMembership, loading, isPremium, displayName } = useAuth();
   const [matchups, setMatchups] = useState<Matchup[]>([]);
   const [selectedPicks, setSelectedPicks] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -127,7 +127,7 @@ export default function Home() {
       const response = await makeAuthenticatedRequest('/api/submitBet', {
         method: 'POST',
         body: JSON.stringify({
-          user_name: user.displayName || user.email || 'Unknown User',
+          user_name: displayName,
           user_id: user.uid,
           picks: selectedPicks,
         }),
@@ -273,11 +273,11 @@ export default function Home() {
               <div className="mb-8">
                 <div className="flex items-center space-x-4 mb-6">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                    {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                    {displayName.charAt(0)}
                   </div>
                   <div>
                     <span className="text-lg font-semibold text-white">
-                      Welcome back, {user.displayName || user.email}
+                      Welcome back, {displayName}
                     </span>
                     <p className="text-sm text-slate-300">
                       {currentMembership?.role === 'admin' ? 'Ready to manage your league?' : 'Ready to make your picks?'}

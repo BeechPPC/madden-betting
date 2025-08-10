@@ -8,7 +8,7 @@ import { makeAuthenticatedRequest } from '../utils/api';
 import * as LucideIcons from "lucide-react";
 
 export default function AdminPage() {
-  const { user, userRole, currentMembership, userLeagues, loading } = useAuth();
+  const { user, userRole, currentMembership, userLeagues, loading, displayName } = useAuth();
   const [currentSection, setCurrentSection] = useState<'main' | 'setup'>('main');
   const [sheetId, setSheetId] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -170,10 +170,10 @@ export default function AdminPage() {
             </button>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-medium">
-                {user.displayName?.charAt(0) || user.email?.charAt(0) || 'A'}
+                {displayName.charAt(0)}
               </div>
               <span className="text-sm font-medium text-slate-300 hidden sm:block">
-                {user.displayName || user.email}
+                {displayName}
               </span>
             </div>
           </div>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 const UserProfile: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, displayName } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -23,10 +23,10 @@ const UserProfile: React.FC = () => {
         className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 rounded-xl p-2 transition-all duration-200 hover:bg-white/50"
       >
         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold text-lg shadow-soft">
-          {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+          {displayName.charAt(0)}
         </div>
         <span className="hidden md:block text-sm font-semibold">
-          {user.displayName || user.email}
+          {displayName}
         </span>
         <svg
           className={`w-5 h-5 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
@@ -43,15 +43,24 @@ const UserProfile: React.FC = () => {
           <div className="px-6 py-4 border-b border-gray-100">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold text-lg shadow-soft">
-                {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                {displayName.charAt(0)}
               </div>
               <div>
-                <div className="font-bold text-gray-900">{user.displayName}</div>
+                <div className="font-bold text-gray-900">{displayName}</div>
                 <div className="text-sm text-gray-500">{user.email}</div>
               </div>
             </div>
           </div>
           <div className="py-2">
+            <a
+              href="/profile"
+              className="w-full text-left px-6 py-3 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition-colors duration-200 font-medium flex items-center"
+            >
+              <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Profile Settings
+            </a>
             <button
               onClick={handleSignOut}
               className="w-full text-left px-6 py-3 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition-colors duration-200 font-medium flex items-center"

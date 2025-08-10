@@ -103,6 +103,7 @@ export interface UserProfileDocument {
   userId: string;
   userEmail: string;
   displayName: string;
+  username?: string; // Custom username field for user preference
   defaultLeagueId?: string;
   preferences: {
     theme?: string;
@@ -401,6 +402,31 @@ export class FirestoreServerService {
     } catch (error) {
       console.error('Error updating user profile:', error);
       throw new Error(`Failed to update user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  static async checkUsernameAvailability(username: string): Promise<boolean> {
+    try {
+      initializeFirebaseAdmin();
+      
+      // Username validation
+      if (!username || username.length < 3 || username.length > 20) {
+        return false;
+      }
+      
+      // Check if username contains only alphanumeric characters and underscores
+      if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        return false;
+      }
+      
+      // Check if username is already taken
+      const userProfilesRef = db.collection('userProfiles');
+      const querySnapshot = await userProfilesRef.where('username', '==', username.toLowerCase()).get();
+      
+      return querySnapshot.empty;
+    } catch (error) {
+      console.error('Error checking username availability:', error);
+      throw new Error(`Failed to check username availability: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

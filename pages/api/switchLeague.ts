@@ -62,7 +62,7 @@ export default async function handler(
         userProfile = await FirestoreServerService.createUserProfile({
           userId: user.uid,
           userEmail: user.email || '',
-          displayName: user.displayName || user.email || 'Unknown User',
+          displayName: user.displayName || user.email || 'Unknown User', // This will be updated by the client
           defaultLeagueId: leagueId,
           preferences: {
             theme: 'dark',

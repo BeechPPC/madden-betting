@@ -35,6 +35,7 @@ interface UserProfile {
   userId: string;
   userEmail: string;
   displayName: string;
+  username?: string; // Custom username field for user preference
   defaultLeagueId?: string;
   preferences: {
     theme?: string;
@@ -81,6 +82,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isPremium: boolean;
   hasMultipleLeagues: boolean;
+  displayName: string; // Computed display name using username priority
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -432,6 +434,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Computed display name with username priority
+  const displayName = userProfile?.username || user?.displayName || user?.email || 'Unknown User';
+
   const value = {
     user,
     loading,
@@ -450,6 +455,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAdmin: currentMembership?.role === 'admin' || userRole?.role === 'admin',
     isPremium: currentLeague?.isPaid || false, // Use league payment status instead of user premium
     hasMultipleLeagues: userLeagues.length >= 1, // Changed from > 1 to >= 1 to allow joining additional leagues
+    displayName,
   };
 
   return (

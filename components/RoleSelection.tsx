@@ -9,7 +9,7 @@ import * as LucideIcons from "lucide-react"
 import { formatLeagueCodeInput, copyToClipboard } from '../lib/utils';
 
 const RoleSelection: React.FC = () => {
-  const { user, createLeague, joinLeague, signOut, loading } = useAuth();
+  const { user, createLeague, joinLeague, signOut, loading, displayName } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState<'select' | 'create' | 'join'>('select');
   const [leagueName, setLeagueName] = useState('');
@@ -219,7 +219,7 @@ const RoleSelection: React.FC = () => {
                 <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight">
                   Welcome,{" "}
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-blue-400 to-emerald-400">
-                    {user?.displayName || user?.email}
+                    {displayName}
                   </span>
                 </h1>
                 <p className="text-lg sm:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto">
