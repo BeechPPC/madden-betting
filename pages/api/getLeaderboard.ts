@@ -39,14 +39,15 @@ export default async function handler(
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Get user's current league to find the Google Sheet ID
-    const userRole = await FirestoreServerService.getUserRole(user.uid);
-    if (!userRole) {
+    // Get user's current league membership using the new multi-league system
+    const userMemberships = await FirestoreServerService.getUserLeagueMemberships(user.uid);
+    if (!userMemberships || userMemberships.length === 0) {
       return res.status(404).json({ error: 'User not found in any league' });
     }
 
-    // Get the league to access its Google Sheet ID
-    const league = await FirestoreServerService.getLeague(userRole.leagueId);
+    // Get the current league (use the first membership for now, or implement league switching logic)
+    const currentMembership = userMemberships[0];
+    const league = await FirestoreServerService.getLeague(currentMembership.leagueId);
     if (!league) {
       return res.status(404).json({ error: 'League not found' });
     }
