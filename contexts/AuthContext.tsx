@@ -439,14 +439,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!user) return;
     
     try {
+      console.log('refreshUserProfile: Starting refresh...');
       const response = await makeAuthenticatedRequest('/api/getUserLeagues');
       if (response.ok) {
         const data = await response.json();
-        setUserProfile(data.userProfile ? {
+        console.log('refreshUserProfile: Received data:', data);
+        
+        const newUserProfile = data.userProfile ? {
           ...data.userProfile,
           createdAt: new Date(data.userProfile.createdAt),
           updatedAt: new Date(data.userProfile.updatedAt),
-        } : null);
+        } : null;
+        
+        console.log('refreshUserProfile: Setting userProfile to:', newUserProfile);
+        setUserProfile(newUserProfile);
         
         // Also update currentMembership to ensure displayName updates
         if (data.currentMembership) {
@@ -465,6 +471,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             lastAccessedAt: new Date(membership.lastAccessedAt),
           })));
         }
+      } else {
+        console.error('refreshUserProfile: Response not ok:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error refreshing user profile:', error);

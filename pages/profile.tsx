@@ -33,6 +33,7 @@ export default function ProfilePage() {
   // Initialize username from user profile
   useEffect(() => {
     if (userProfile?.username) {
+      console.log('useEffect: Setting username from userProfile:', userProfile.username);
       setUsername(userProfile.username);
     }
   }, [userProfile]);
@@ -132,6 +133,7 @@ export default function ProfilePage() {
     setMessage(null);
 
     try {
+      console.log('Updating username to:', username.trim());
       const response = await makeAuthenticatedRequest('/api/updateProfile', {
         method: 'POST',
         body: JSON.stringify({ username: username.trim() }),
@@ -139,9 +141,14 @@ export default function ProfilePage() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Username update response:', data);
         setMessage({ type: 'success', text: data.message });
+        
         // Refresh user profile data
+        console.log('Refreshing user profile...');
         await refreshUserProfile();
+        console.log('User profile refreshed, current userProfile:', userProfile);
+        
         // Update local username state to match the updated profile
         setUsername(username.trim());
         // Reset availability status
