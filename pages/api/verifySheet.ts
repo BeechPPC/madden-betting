@@ -16,6 +16,11 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  console.log('=== VERIFY SHEET API CALLED ===');
+  console.log('Request method:', req.method);
+  console.log('Request URL:', req.url);
+  console.log('Request body:', req.body);
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -24,26 +29,44 @@ export default async function handler(
     const { sheetId } = req.body;
 
     if (!sheetId) {
+      console.log('No sheetId provided in request body');
       return res.status(400).json({ error: 'Sheet ID is required' });
     }
+
+    console.log('Sheet ID provided:', sheetId);
 
     // Clean the sheet ID (remove any URL parts)
     const cleanSheetId = sheetId.replace(/^https:\/\/docs\.google\.com\/spreadsheets\/d\//, '').replace(/\/.*$/, '');
 
     console.log('Verifying sheet ID:', cleanSheetId);
+    console.log('Google Sheets credentials check:', {
+      hasClientEmail: !!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+      hasPrivateKey: !!process.env.GOOGLE_PRIVATE_KEY,
+      clientEmailLength: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL?.length || 0,
+      privateKeyLength: process.env.GOOGLE_PRIVATE_KEY?.length || 0
+    });
 
     // Test 1: Check if sheet exists and is accessible
     try {
+      console.log('Attempting to access Google Sheet...');
       const metadata = await sheets.spreadsheets.get({
         spreadsheetId: cleanSheetId,
       });
       
       console.log('Sheet metadata retrieved successfully');
+      console.log('Sheet title:', metadata.data.properties?.title);
+      console.log('Sheet ID:', metadata.data.spreadsheetId);
     } catch (error) {
       console.error('Error accessing sheet:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        code: (error as any)?.code,
+        status: (error as any)?.status
+      });
       return res.status(400).json({ 
         error: 'Cannot access the Google Sheet. Please check the Sheet ID and sharing permissions.',
-        details: 'Make sure the sheet is shared with "Anyone with the link can view"'
+        details: 'Make sure the sheet is shared with "Anyone with the link can view"',
+        debug: error instanceof Error ? error.message : 'Unknown error'
       });
     }
 
@@ -141,9 +164,18 @@ export default async function handler(
 
   } catch (error) {
     console.error('Error in verifySheet:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('Error type:', typeof error);
+    console.error('Error constructor:', error?.constructor?.name);
+    
     return res.status(500).json({
       error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
+      debug: {
+        type: typeof error,
+        constructor: error?.constructor?.name,
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      }
     });
   }
 } 
