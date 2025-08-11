@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,6 +18,7 @@ export default function ProfilePage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [availabilityStatus, setAvailabilityStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Check if user has any leagues (using new multi-league system or legacy system)
   const hasLeagues = currentMembership || userLeagues.length > 0;
@@ -33,11 +34,17 @@ export default function ProfilePage() {
   useEffect(() => {
     if (userProfile?.username) {
       setUsername(userProfile.username);
-    } else if (!userProfile?.username && username) {
-      // Clear username if profile doesn't have one but local state does
-      setUsername('');
     }
-  }, [userProfile, username]);
+  }, [userProfile]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   // Show loading state while checking authentication
   if (loading) {
@@ -104,12 +111,15 @@ export default function ProfilePage() {
     setUsername(value);
     setMessage(null);
     
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
     // Debounce the availability check
-    const timeoutId = setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       checkUsernameAvailability(value);
     }, 500);
-
-    return () => clearTimeout(timeoutId);
   };
 
   const handleUpdateUsername = async () => {
