@@ -73,6 +73,7 @@ export default async function handler(
           userId: userProfile.userId,
           userEmail: userProfile.userEmail,
           displayName: userProfile.displayName,
+          username: userProfile.username,
           defaultLeagueId: userProfile.defaultLeagueId,
           preferences: userProfile.preferences,
           createdAt: userProfile.createdAt.toDate().toISOString(),
