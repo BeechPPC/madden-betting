@@ -56,8 +56,8 @@ function initializeGoogleSheets() {
     console.log('=== INITIALIZING GOOGLE SHEETS API ===');
     
     // Check environment variables
-    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY;
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
     
     console.log('Environment check:', {
