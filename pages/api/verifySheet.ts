@@ -63,11 +63,56 @@ export default async function handler(
         code: (error as any)?.code,
         status: (error as any)?.status
       });
-      return res.status(400).json({ 
-        error: 'Cannot access the Google Sheet. Please check the Sheet ID and sharing permissions.',
-        details: 'Make sure the sheet is shared with "Anyone with the link can view"',
-        debug: error instanceof Error ? error.message : 'Unknown error'
-      });
+      
+      // Try to add the service account as an editor if access is denied
+      if ((error as any)?.code === 403 || (error as any)?.status === 403) {
+        console.log('Access denied. Attempting to add service account as editor...');
+        try {
+          const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+          if (!serviceAccountEmail) {
+            throw new Error('Service account email not configured');
+          }
+          
+          // Import Google Drive API to add permissions
+          const { google } = require('googleapis');
+          const drive = google.drive({ version: 'v3', auth });
+          
+          await drive.permissions.create({
+            fileId: cleanSheetId,
+            requestBody: {
+              role: 'writer',
+              type: 'user',
+              emailAddress: serviceAccountEmail,
+            },
+          });
+          
+          console.log('Successfully added service account as editor');
+          
+          // Try accessing the sheet again
+          const metadata = await sheets.spreadsheets.get({
+            spreadsheetId: cleanSheetId,
+          });
+          
+          console.log('Sheet access successful after adding permissions');
+          console.log('Sheet title:', metadata.data.properties?.title);
+          console.log('Sheet ID:', metadata.data.spreadsheetId);
+        } catch (permissionError) {
+          console.error('Failed to add service account permissions:', permissionError);
+          return res.status(400).json({ 
+            error: 'Cannot access the Google Sheet. Please add the service account as an editor.',
+            details: `Add this email as an editor to your Google Sheet: ${process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL}`,
+            serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+            debug: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      } else {
+        return res.status(400).json({ 
+          error: 'Cannot access the Google Sheet. Please check the Sheet ID and sharing permissions.',
+          details: 'Make sure the sheet is shared with "Anyone with the link can view" or add the service account as an editor',
+          serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+          debug: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
     }
 
     // Test 2: Check if required sheets exist
