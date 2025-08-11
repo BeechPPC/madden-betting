@@ -135,8 +135,8 @@ export default async function handler(
 
       // Create Google Sheet copy for the new league
       try {
-        console.log('Creating Google Sheet copy for new league...');
-        const sheetResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/createGoogleSheet`, {
+        console.log('Creating Google Sheet for new league...');
+        const sheetResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/createLeagueSheet`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -161,6 +161,8 @@ export default async function handler(
           console.log('League updated with Google Sheet ID');
         } else {
           console.error('Failed to create Google Sheet:', sheetResponse.status, sheetResponse.statusText);
+          const errorData = await sheetResponse.json();
+          console.error('Sheet creation error details:', errorData);
           // Don't fail the league creation if sheet creation fails
         }
       } catch (sheetError) {
