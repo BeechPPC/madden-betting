@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyAuth } from '../../utils/authMiddleware';
 import { FirestoreServerService } from '../../lib/firestore-server';
+import { DocumentData } from 'firebase-admin/firestore';
 
 export default async function handler(
   req: NextApiRequest,
@@ -29,7 +30,7 @@ export default async function handler(
     console.log('Getting all user roles...');
     const db = FirestoreServerService.getDb();
     const userRolesSnapshot = await db.collection('userRoles').get();
-    const userRoles = userRolesSnapshot.docs.map(doc => ({
+    const userRoles = userRolesSnapshot.docs.map((doc: DocumentData) => ({
       id: doc.id,
       ...doc.data()
     }));
@@ -37,7 +38,7 @@ export default async function handler(
     // Get all user memberships
     console.log('Getting all user memberships...');
     const userMembershipsSnapshot = await db.collection('userLeagueMemberships').get();
-    const userMemberships = userMembershipsSnapshot.docs.map(doc => ({
+    const userMemberships = userMembershipsSnapshot.docs.map((doc: DocumentData) => ({
       id: doc.id,
       ...doc.data()
     }));
@@ -45,7 +46,7 @@ export default async function handler(
     // Get all user profiles
     console.log('Getting all user profiles...');
     const userProfilesSnapshot = await db.collection('userProfiles').get();
-    const userProfiles = userProfilesSnapshot.docs.map(doc => ({
+    const userProfiles = userProfilesSnapshot.docs.map((doc: DocumentData) => ({
       id: doc.id,
       ...doc.data()
     }));
