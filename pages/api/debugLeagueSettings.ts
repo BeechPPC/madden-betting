@@ -55,7 +55,7 @@ export default async function handler(
       success: true,
       debug: {
         timestamp: new Date().toISOString(),
-        leagues: allLeagues.map(l => ({
+        leagues: allLeagues.map((l: any) => ({
           id: l.id,
           name: l.name,
           leagueCode: l.leagueCode,
@@ -66,7 +66,7 @@ export default async function handler(
           settings: l.settings,
           createdAt: l.createdAt
         })),
-        userRoles: userRoles.map(r => ({
+        userRoles: userRoles.map((r: any) => ({
           id: r.id,
           userId: r.userId,
           userEmail: r.userEmail,
@@ -75,7 +75,7 @@ export default async function handler(
           isActive: r.isActive,
           joinedAt: r.joinedAt
         })),
-        userMemberships: userMemberships.map(m => ({
+        userMemberships: userMemberships.map((m: any) => ({
           id: m.id,
           userId: m.userId,
           userEmail: m.userEmail,
@@ -84,7 +84,7 @@ export default async function handler(
           isActive: m.isActive,
           lastAccessedAt: m.lastAccessedAt
         })),
-        userProfiles: userProfiles.map(p => ({
+        userProfiles: userProfiles.map((p: any) => ({
           id: p.id,
           userId: p.userId,
           userEmail: p.userEmail,
