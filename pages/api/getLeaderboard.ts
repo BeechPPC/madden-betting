@@ -4,7 +4,7 @@ import { FirestoreServerService } from '../../lib/firestore-server';
 import { verifyAuth } from '../../utils/authMiddleware';
 import { google } from 'googleapis';
 
-// Initialize Google Sheets API
+// Initialize Google Sheets API using dedicated Google service account
 const auth = new google.auth.GoogleAuth({
   credentials: {
     client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,

@@ -1,5 +1,25 @@
 import { google } from 'googleapis';
 
+// Helper function to properly format private key
+function formatPrivateKey(privateKey: string): string {
+  let formattedKey = privateKey;
+  
+  // Remove quotes if present
+  if (formattedKey.startsWith('"') && formattedKey.endsWith('"')) {
+    formattedKey = formattedKey.slice(1, -1);
+  }
+  
+  // Replace \n with actual newlines
+  formattedKey = formattedKey.replace(/\\n/g, '\n');
+  
+  // Ensure proper PEM format
+  if (!formattedKey.includes('-----BEGIN PRIVATE KEY-----')) {
+    throw new Error('Private key does not have proper PEM format');
+  }
+  
+  return formattedKey;
+}
+
 // Types for Google Sheets data
 export interface BetData {
   user_name: string;
@@ -55,7 +75,7 @@ function initializeGoogleSheets() {
   try {
     console.log('=== INITIALIZING GOOGLE SHEETS API ===');
     
-    // Check environment variables
+    // Use dedicated Google service account
     const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
     const privateKey = process.env.GOOGLE_PRIVATE_KEY;
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
@@ -63,28 +83,16 @@ function initializeGoogleSheets() {
     console.log('Environment check:', {
       clientEmail: !!clientEmail,
       privateKey: !!privateKey,
-      spreadsheetId: !!spreadsheetId
+      spreadsheetId: !!spreadsheetId,
+      usingGoogleServiceAccount: true
     });
     
     if (!clientEmail || !privateKey || !spreadsheetId) {
-      throw new Error('Missing required environment variables for Google Sheets API');
+      throw new Error('Missing required environment variables for Google Sheets API. Need Google service account credentials.');
     }
     
-    // Fix private key formatting
-    let formattedPrivateKey = privateKey;
-    
-    // Remove quotes if present
-    if (formattedPrivateKey.startsWith('"') && formattedPrivateKey.endsWith('"')) {
-      formattedPrivateKey = formattedPrivateKey.slice(1, -1);
-    }
-    
-    // Replace \n with actual newlines
-    formattedPrivateKey = formattedPrivateKey.replace(/\\n/g, '\n');
-    
-    // Ensure proper PEM format
-    if (!formattedPrivateKey.includes('-----BEGIN PRIVATE KEY-----')) {
-      throw new Error('Private key does not have proper PEM format');
-    }
+    // Use simple private key formatting (confirmed working)
+    const formattedPrivateKey = privateKey.replace(/\\n/g, '\n');
     
     console.log('Creating Google Auth instance...');
     auth = new google.auth.GoogleAuth({

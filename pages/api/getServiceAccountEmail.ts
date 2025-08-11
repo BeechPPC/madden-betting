@@ -9,14 +9,14 @@ export default async function handler(
   }
 
   try {
-    const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    
-    if (!serviceAccountEmail) {
-      return res.status(500).json({ 
-        error: 'Service account email not configured',
-        details: 'GOOGLE_SERVICE_ACCOUNT_EMAIL environment variable is not set'
-      });
-    }
+      const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || process.env.FIREBASE_CLIENT_EMAIL;
+  
+  if (!serviceAccountEmail) {
+    return res.status(500).json({ 
+      error: 'Service account email not configured',
+      details: 'Neither GOOGLE_SERVICE_ACCOUNT_EMAIL nor FIREBASE_CLIENT_EMAIL environment variables are set'
+    });
+  }
 
     return res.status(200).json({
       serviceAccountEmail,

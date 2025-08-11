@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { makeAuthenticatedRequest } from '../utils/api';
 
 interface LeaderboardEntry {
@@ -21,15 +22,27 @@ const Leaderboard: React.FC = () => {
   const fetchLeaderboard = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await makeAuthenticatedRequest('/api/getLeaderboard');
       const data = await response.json();
       
       if (response.ok) {
         setLeaderboard(data.leaderboard);
+      } else if (response.status === 404) {
+        // Handle 404 errors gracefully - user needs to set up their league
+        console.log('Leaderboard 404 - user needs to set up league:', data.error);
+        if (data.error === 'User not found in any league') {
+          setError('Please create or join a league to view the leaderboard');
+        } else if (data.error === 'League does not have a Google Sheet configured') {
+          setError('League setup incomplete. Please contact the admin to configure the leaderboard.');
+        } else {
+          setError(data.error || 'League not properly configured');
+        }
       } else {
         setError(data.error || 'Failed to load leaderboard');
       }
     } catch (error) {
+      console.error('Error fetching leaderboard:', error);
       setError('Error loading leaderboard');
     } finally {
       setIsLoading(false);
@@ -84,15 +97,33 @@ const Leaderboard: React.FC = () => {
         </div>
       ) : error ? (
         <div className="text-center py-8">
-          <div className="error-message">
-            <p className="font-medium">{error}</p>
-            <button
-              onClick={fetchLeaderboard}
-              className="mt-3 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-200"
-            >
-              Try again
-            </button>
-          </div>
+          {error.includes('create or join a league') ? (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+                <span className="text-2xl">🏆</span>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Join the Competition!</h3>
+              <p className="text-gray-600 text-sm mb-4">
+                Create or join a league to see the leaderboard and compete with others.
+              </p>
+              <Link
+                href="/role-selection"
+                className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-200"
+              >
+                Create or Join League →
+              </Link>
+            </div>
+          ) : (
+            <div className="error-message">
+              <p className="font-medium">{error}</p>
+              <button
+                onClick={fetchLeaderboard}
+                className="mt-3 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-200"
+              >
+                Try again
+              </button>
+            </div>
+          )}
         </div>
       ) : leaderboard.length === 0 ? (
         <div className="text-center py-12">

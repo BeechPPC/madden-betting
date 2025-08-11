@@ -48,6 +48,33 @@ export const makeAuthenticatedRequest = async (url: string, options: RequestInit
     console.log('Response status text:', response.statusText);
     console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
+    // If we get a 400 error, try to get more details
+    if (response.status === 400) {
+      console.error('=== 400 ERROR DETAILS ===');
+      console.error('URL that returned 400:', url);
+      console.error('Request options:', options);
+      console.error('User info:', {
+        email: user.email,
+        uid: user.uid,
+        emailVerified: user.emailVerified,
+      });
+      
+      try {
+        const errorText = await response.text();
+        console.error('400 Error response body:', errorText);
+        
+        // Try to parse as JSON
+        try {
+          const errorJson = JSON.parse(errorText);
+          console.error('400 Error JSON:', errorJson);
+        } catch (jsonError) {
+          console.error('400 Error is not JSON:', errorText);
+        }
+      } catch (textError) {
+        console.error('Could not read 400 error response:', textError);
+      }
+    }
+
     return response;
   } catch (error) {
     console.error('Error in makeAuthenticatedRequest:', error);

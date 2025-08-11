@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { google } from 'googleapis';
 
-// Initialize Google Sheets API
+// Initialize Google Sheets API using dedicated Google service account
 const auth = new google.auth.GoogleAuth({
   credentials: {
     client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
@@ -9,6 +9,30 @@ const auth = new google.auth.GoogleAuth({
   },
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
+
+// Helper function to properly format private key
+function formatPrivateKey(privateKey: string | undefined): string {
+  if (!privateKey) {
+    throw new Error('Private key is required');
+  }
+  
+  let formattedKey = privateKey;
+  
+  // Remove quotes if present
+  if (formattedKey.startsWith('"') && formattedKey.endsWith('"')) {
+    formattedKey = formattedKey.slice(1, -1);
+  }
+  
+  // Replace \n with actual newlines
+  formattedKey = formattedKey.replace(/\\n/g, '\n');
+  
+  // Ensure proper PEM format
+  if (!formattedKey.includes('-----BEGIN PRIVATE KEY-----')) {
+    throw new Error('Private key does not have proper PEM format');
+  }
+  
+  return formattedKey;
+}
 
 const sheets = google.sheets({ version: 'v4', auth });
 
@@ -39,11 +63,16 @@ export default async function handler(
     const cleanSheetId = sheetId.replace(/^https:\/\/docs\.google\.com\/spreadsheets\/d\//, '').replace(/\/.*$/, '');
 
     console.log('Verifying sheet ID:', cleanSheetId);
+    const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || process.env.FIREBASE_CLIENT_EMAIL;
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY || process.env.FIREBASE_PRIVATE_KEY;
+    
     console.log('Google Sheets credentials check:', {
-      hasClientEmail: !!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      hasPrivateKey: !!process.env.GOOGLE_PRIVATE_KEY,
-      clientEmailLength: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL?.length || 0,
-      privateKeyLength: process.env.GOOGLE_PRIVATE_KEY?.length || 0
+      hasClientEmail: !!clientEmail,
+      hasPrivateKey: !!privateKey,
+      clientEmailLength: clientEmail?.length || 0,
+      privateKeyLength: privateKey?.length || 0,
+      usingFirebaseFallback: !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && !!process.env.FIREBASE_CLIENT_EMAIL,
+      serviceAccountEmail: clientEmail
     });
 
     // Test 1: Check if sheet exists and is accessible
@@ -68,7 +97,7 @@ export default async function handler(
       if ((error as any)?.code === 403 || (error as any)?.status === 403) {
         console.log('Access denied. Attempting to add service account as editor...');
         try {
-          const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+          const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || process.env.FIREBASE_CLIENT_EMAIL;
           if (!serviceAccountEmail) {
             throw new Error('Service account email not configured');
           }
@@ -98,18 +127,20 @@ export default async function handler(
           console.log('Sheet ID:', metadata.data.spreadsheetId);
         } catch (permissionError) {
           console.error('Failed to add service account permissions:', permissionError);
+          const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || process.env.FIREBASE_CLIENT_EMAIL;
           return res.status(400).json({ 
             error: 'Cannot access the Google Sheet. Please add the service account as an editor.',
-            details: `Add this email as an editor to your Google Sheet: ${process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL}`,
-            serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+            details: `Add this email as an editor to your Google Sheet: ${serviceAccountEmail}`,
+            serviceAccountEmail: serviceAccountEmail,
             debug: error instanceof Error ? error.message : 'Unknown error'
           });
         }
       } else {
+        const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || process.env.FIREBASE_CLIENT_EMAIL;
         return res.status(400).json({ 
           error: 'Cannot access the Google Sheet. Please check the Sheet ID and sharing permissions.',
           details: 'Make sure the sheet is shared with "Anyone with the link can view" or add the service account as an editor',
-          serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+          serviceAccountEmail: serviceAccountEmail,
           debug: error instanceof Error ? error.message : 'Unknown error'
         });
       }

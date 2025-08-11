@@ -74,15 +74,32 @@ export default function Home() {
 
   const fetchMatchups = async () => {
     try {
+      console.log('=== FETCHING MATCHUPS ===');
       setIsLoadingMatchups(true);
       setMatchupsError(null);
       const response = await makeAuthenticatedRequest('/api/getMatchups');
+      console.log('Matchups response status:', response.status);
+      
       const data = await response.json();
+      console.log('Matchups response data:', data);
       
       if (response.ok) {
         setMatchups(data.matchups);
         setCurrentWeek(data.currentWeek);
+      } else if (response.status === 404) {
+        // Handle 404 errors gracefully - user needs to set up their league
+        console.log('Matchups 404 - user needs to set up league:', data.error);
+        if (data.error === 'User not found in any league') {
+          setMatchupsError('Please create or join a league to view matchups');
+        } else if (data.error === 'League does not have a Google Sheet configured') {
+          setMatchupsError('League setup incomplete. Please contact the admin to configure matchups.');
+        } else if (data.error === 'No matchups found in Google Sheets') {
+          setMatchupsError('No matchups have been set up for this week yet.');
+        } else {
+          setMatchupsError(data.error || 'League not properly configured');
+        }
       } else {
+        console.error('Matchups API error:', response.status, response.statusText);
         setMatchupsError(data.error || 'Failed to load matchups');
       }
     } catch (error) {
@@ -321,16 +338,33 @@ export default function Home() {
                     </div>
                   ) : matchupsError ? (
                     <div className="text-center py-12">
-                      <div className="bg-red-900/20 border border-red-700/30 rounded-xl p-6">
-                        <LucideIcons.AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-                        <p className="font-medium text-white mb-3">{matchupsError}</p>
-                        <button
-                          onClick={fetchMatchups}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                        >
-                          Try Again
-                        </button>
-                      </div>
+                      {matchupsError.includes('create or join a league') ? (
+                        <div className="bg-blue-900/20 border border-blue-700/30 rounded-xl p-6">
+                          <LucideIcons.Users className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+                          <h3 className="text-xl font-bold text-white mb-2">Welcome to ClutchPicks!</h3>
+                          <p className="text-slate-300 font-medium mb-4">
+                            You need to create or join a league to start making picks.
+                          </p>
+                          <Link
+                            href="/role-selection"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center"
+                          >
+                            <LucideIcons.Plus className="h-4 w-4 mr-2" />
+                            Create or Join League
+                          </Link>
+                        </div>
+                      ) : (
+                        <div className="bg-red-900/20 border border-red-700/30 rounded-xl p-6">
+                          <LucideIcons.AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+                          <p className="font-medium text-white mb-3">{matchupsError}</p>
+                          <button
+                            onClick={fetchMatchups}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                          >
+                            Try Again
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : matchups.length === 0 ? (
                     <div className="text-center py-12">

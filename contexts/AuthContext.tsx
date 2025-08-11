@@ -175,10 +175,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUserRole(null);
       } else {
         console.error('Error fetching user leagues:', response.status, response.statusText);
+        
+        // Try to get more details about the error
+        try {
+          const errorText = await response.text();
+          console.error('Error response body:', errorText);
+          
+          // Try to parse as JSON
+          try {
+            const errorJson = JSON.parse(errorText);
+            console.error('Error JSON:', errorJson);
+          } catch (jsonError) {
+            console.error('Error is not JSON:', errorText);
+          }
+        } catch (textError) {
+          console.error('Could not read error response:', textError);
+        }
+        
         // Don't throw here to prevent breaking the auth flow
       }
     } catch (error) {
       console.error('Error fetching user leagues:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        name: error instanceof Error ? error.name : 'Unknown',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       // Don't throw here to prevent breaking the auth flow
     }
   }, [user]);

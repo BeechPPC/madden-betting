@@ -165,6 +165,30 @@ async function handler(
 
 export default withAuth(handler);
 
+// Helper function to properly format private key
+function formatPrivateKey(privateKey: string | undefined): string {
+  if (!privateKey) {
+    throw new Error('Private key is required');
+  }
+  
+  let formattedKey = privateKey;
+  
+  // Remove quotes if present
+  if (formattedKey.startsWith('"') && formattedKey.endsWith('"')) {
+    formattedKey = formattedKey.slice(1, -1);
+  }
+  
+  // Replace \n with actual newlines
+  formattedKey = formattedKey.replace(/\\n/g, '\n');
+  
+  // Ensure proper PEM format
+  if (!formattedKey.includes('-----BEGIN PRIVATE KEY-----')) {
+    throw new Error('Private key does not have proper PEM format');
+  }
+  
+  return formattedKey;
+}
+
 // Helper function to get bets from a specific sheet
 async function getAllBets(sheetId: string): Promise<Bet[]> {
   try {
@@ -173,8 +197,8 @@ async function getAllBets(sheetId: string): Promise<Bet[]> {
     // Initialize Google Sheets API
     const auth = new google.auth.GoogleAuth({
       credentials: {
-        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || process.env.FIREBASE_CLIENT_EMAIL,
+        private_key: formatPrivateKey(process.env.GOOGLE_PRIVATE_KEY || process.env.FIREBASE_PRIVATE_KEY),
       },
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
@@ -207,8 +231,8 @@ async function addResultToSheet(matchup_id: string, winning_team: string, userRe
     // Initialize Google Sheets API
     const auth = new google.auth.GoogleAuth({
       credentials: {
-        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || process.env.FIREBASE_CLIENT_EMAIL,
+        private_key: formatPrivateKey(process.env.GOOGLE_PRIVATE_KEY || process.env.FIREBASE_PRIVATE_KEY),
       },
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
