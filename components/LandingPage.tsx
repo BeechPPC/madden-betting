@@ -177,7 +177,7 @@ export default function LandingPage() {
                 <div className="p-4 bg-blue-500/10 rounded-2xl w-fit group-hover:bg-blue-500/20 transition-colors duration-300">
                   <LucideIcons.Zap className="h-12 w-12 text-blue-400 group-hover:text-blue-300 transition-colors duration-300" />
                 </div>
-                <CardTitle className="text-xl text-white group-hover:text-blue-300 transition-colors duration-300">Real-Time Betting</CardTitle>
+                <CardTitle className="text-xl text-white group-hover:text-blue-300 transition-colors duration-300">Coming Soon...</CardTitle>
                 <CardDescription className="text-slate-300 leading-relaxed">
                   Place bets on live games with instant updates and dynamic odds that adjust based on game performance.
                 </CardDescription>
@@ -189,7 +189,7 @@ export default function LandingPage() {
                 <div className="p-4 bg-emerald-500/10 rounded-2xl w-fit group-hover:bg-emerald-500/20 transition-colors duration-300">
                   <LucideIcons.Shield className="h-12 w-12 text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300" />
                 </div>
-                <CardTitle className="text-xl text-white group-hover:text-emerald-300 transition-colors duration-300">Secure Transactions</CardTitle>
+                <CardTitle className="text-xl text-white group-hover:text-emerald-300 transition-colors duration-300">Coming Soon...</CardTitle>
                 <CardDescription className="text-slate-300 leading-relaxed">
                   Bank-level security with encrypted transactions and secure wallet management for all your bets.
                 </CardDescription>
@@ -201,7 +201,7 @@ export default function LandingPage() {
                 <div className="p-4 bg-emerald-500/10 rounded-2xl w-fit group-hover:bg-emerald-500/20 transition-colors duration-300">
                   <LucideIcons.Users className="h-12 w-12 text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300" />
                 </div>
-                <CardTitle className="text-xl text-white group-hover:text-emerald-300 transition-colors duration-300">League Management</CardTitle>
+                <CardTitle className="text-xl text-white group-hover:text-emerald-300 transition-colors duration-300">Coming Soon...</CardTitle>
                 <CardDescription className="text-slate-300 leading-relaxed">
                   Create and manage betting pools with friends, track leaderboards, and organise tournaments.
                 </CardDescription>
@@ -213,7 +213,7 @@ export default function LandingPage() {
                 <div className="p-4 bg-blue-500/10 rounded-2xl w-fit group-hover:bg-blue-500/20 transition-colors duration-300">
                   <LucideIcons.TrendingUp className="h-12 w-12 text-blue-400 group-hover:text-blue-300 transition-colors duration-300" />
                 </div>
-                <CardTitle className="text-xl text-white group-hover:text-blue-300 transition-colors duration-300">Performance Tracking</CardTitle>
+                <CardTitle className="text-xl text-white group-hover:text-blue-300 transition-colors duration-300">Coming Soon...</CardTitle>
                 <CardDescription className="text-slate-300 leading-relaxed">
                   Monitor your betting history, win rates, and ROI with comprehensive performance dashboards.
                 </CardDescription>
@@ -225,7 +225,7 @@ export default function LandingPage() {
                 <div className="p-4 bg-blue-500/10 rounded-2xl w-fit group-hover:bg-blue-500/20 transition-colors duration-300">
                   <LucideIcons.Star className="h-12 w-12 text-blue-400 group-hover:text-blue-300 transition-colors duration-300" />
                 </div>
-                <CardTitle className="text-xl text-white group-hover:text-blue-300 transition-colors duration-300">Expert Insights</CardTitle>
+                <CardTitle className="text-xl text-white group-hover:text-blue-300 transition-colors duration-300">Coming Soon...</CardTitle>
                 <CardDescription className="text-slate-300 leading-relaxed">
                   Get AI-generated predictions and expert analysis to make informed betting decisions.
                 </CardDescription>
