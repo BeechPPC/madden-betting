@@ -302,8 +302,8 @@ export default function Home() {
                   </div>
                 </div>
                 
-                {/* League Upgrade Button for unpaid leagues */}
-                {currentLeague && !currentLeague.isPaid && (
+                {/* League Upgrade Button for unpaid leagues - only show to admins */}
+                {currentLeague && !currentLeague.isPaid && currentMembership?.role === 'admin' && (
                   <div className="mb-6 p-4 bg-gradient-to-r from-amber-900/20 to-orange-900/20 border border-amber-700/30 rounded-xl">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
