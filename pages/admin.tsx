@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Head from 'next/head';
 import { useAuth } from '../contexts/AuthContext';
 import Login from '../components/Login';
@@ -6,48 +6,36 @@ import RoleSelection from '../components/RoleSelection';
 import AdminPanel from '../components/AdminPanel';
 import { makeAuthenticatedRequest } from '../utils/api';
 import * as LucideIcons from "lucide-react";
-import { Badge } from '../components/ui/badge';
 
 export default function AdminPage() {
-  const { user, isAdmin, displayName, userLeagues, currentMembership } = useAuth();
+  const { user, userRole, currentMembership, userLeagues, loading, displayName } = useAuth();
   const [currentSection, setCurrentSection] = useState<'main' | 'setup'>('main');
   const [sheetId, setSheetId] = useState('');
-  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'verifying' | 'success' | 'error'>('idle');
-  const [verificationMessage, setVerificationMessage] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [verificationMessage, setVerificationMessage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [currentLeague, setCurrentLeague] = useState<any>(null);
-
-  // Get current league info
-  useEffect(() => {
-    const getCurrentLeague = async () => {
-      try {
-        const response = await makeAuthenticatedRequest('/api/getUserLeagues', {
-          method: 'GET',
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.leagues && data.leagues.length > 0) {
-            const activeLeague = data.leagues.find((l: any) => l.isActive);
-            setCurrentLeague(activeLeague);
-          }
-        }
-      } catch (error) {
-        console.error('Error getting current league:', error);
-      }
-    };
-
-    getCurrentLeague();
-  }, []);
 
   // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-400 mx-auto"></div>
+          <p className="mt-4 text-slate-300">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login page if user is not authenticated
   if (!user) {
     return <Login />;
   }
 
-  // Check if user has any leagues
-  const hasLeagues = userLeagues.length > 0 || currentMembership;
+  // Check if user has any leagues (using new multi-league system or legacy system)
+  const hasLeagues = currentMembership || userLeagues.length > 0 || userRole;
+  const isAdmin = currentMembership?.role === 'admin' || userRole?.role === 'admin';
 
   // Show role selection if user is authenticated but doesn't have any leagues
   if (user && !hasLeagues) {
@@ -170,18 +158,6 @@ export default function AdminPage() {
             <span className="text-sm text-emerald-400 font-medium hidden sm:block">Admin</span>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-3">
-            {/* Current League Display */}
-            {currentLeague && (
-              <div className="hidden sm:flex items-center space-x-2 px-3 py-1 bg-slate-800 rounded-md border border-slate-700">
-                <LucideIcons.Users className="h-4 w-4 text-emerald-400" />
-                <span className="text-sm text-slate-300">
-                  {currentLeague.name}
-                </span>
-                <Badge variant="outline" className="text-xs">
-                  {currentLeague.role}
-                </Badge>
-              </div>
-            )}
             {/* Setup Link */}
             <button
               onClick={() => setCurrentSection(currentSection === 'main' ? 'setup' : 'main')}
@@ -221,20 +197,13 @@ export default function AdminPage() {
             <p className="text-base sm:text-lg text-slate-300 max-w-2xl">
               {currentSection === 'main' 
                 ? 'Manage matchups, mark winners, and update leaderboard for your CFM league'
-                : currentLeague 
-                  ? `Configure Google Sheets for ${currentLeague.name}`
-                  : 'Configure Google Sheets for your current league'
+                : 'Configure Google Sheets integration for your league data'
               }
             </p>
-            {currentLeague && currentSection === 'setup' && (
-              <div className="flex items-center space-x-2 text-sm text-slate-400">
-                <LucideIcons.Info className="h-4 w-4" />
-                <span>
-                  This configuration is specific to <strong className="text-emerald-400">{currentLeague.name}</strong>. 
-                  Each league can have its own Google Sheet.
-                </span>
-              </div>
-            )}
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-slate-400">
+              <LucideIcons.Shield className="h-4 w-4" />
+              <span>League Admin Access</span>
+            </div>
           </div>
         </div>
 

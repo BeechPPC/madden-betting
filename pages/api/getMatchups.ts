@@ -27,14 +27,15 @@ export default async function handler(
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Get user's profile to find their current active league
-    const userProfile = await FirestoreServerService.getUserProfile(user.uid);
-    if (!userProfile || !userProfile.defaultLeagueId) {
-      return res.status(404).json({ error: 'User not found or no default league set' });
+    // Get user's current league membership using the new multi-league system
+    const userMemberships = await FirestoreServerService.getUserLeagueMemberships(user.uid);
+    if (!userMemberships || userMemberships.length === 0) {
+      return res.status(404).json({ error: 'User not found in any league' });
     }
 
-    // Get the current league from the user's profile
-    const league = await FirestoreServerService.getLeague(userProfile.defaultLeagueId);
+    // Get the current league (use the first membership for now, or implement league switching logic)
+    const currentMembership = userMemberships[0];
+    const league = await FirestoreServerService.getLeague(currentMembership.leagueId);
     if (!league) {
       return res.status(404).json({ error: 'League not found' });
     }
@@ -77,8 +78,6 @@ export default async function handler(
       matchups: currentWeekMatchups, // Only return current week matchups
       currentWeek,
       totalMatchups: currentWeekMatchups.length,
-      leagueId: league.id,
-      leagueName: league.name,
       allWeeks, // For debugging
       debug: {
         totalMatchupsFound: allMatchups.length,
