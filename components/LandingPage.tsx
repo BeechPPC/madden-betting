@@ -133,7 +133,7 @@ export default function LandingPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/30 via-blue-600/30 to-emerald-600/30 rounded-3xl blur-3xl animate-pulse"></div>
               <div className="relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 shadow-2xl shadow-black/50">
                 <Image
-                  src="/header.jpg"
+                  src="/header.png"
                   alt="Madden CFM Betting Dashboard"
                   width={600}
                   height={600}
